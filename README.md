@@ -1,6 +1,6 @@
 # Red de Tutorías Inter-Sedes
 
-Sistema web para la gestión de tutorías académicas entre sedes universitarias.
+Sistema web para la gestión de tutorías académicas entre lase sedes universitarias de la UNNOBA.
 
 ## Integrantes
 
