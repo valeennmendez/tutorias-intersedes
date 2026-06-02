@@ -28,6 +28,11 @@ function LoginPage() {
 									<input type="password" className="border border-slate-300 shadow-sm rounded-md h-8" />
 								</div>
 							</div>
+							<div>
+								<button type="submit" className="h-8 bg-[#008BBA]">
+									Iniciar Sesion
+								</button>
+							</div>
 						</form>
 					</div>
 				</div>
