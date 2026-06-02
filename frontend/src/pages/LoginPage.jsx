@@ -16,6 +16,18 @@ function LoginPage() {
 						<h1 className="font-semibold text-xl">Iniciar Sesión</h1>
 						<h2 className="text-slate-600">Ingresa con tu correo institucional UNNOBA</h2>
 					</div>
+					<div>
+						<form action="">
+							<div>
+								<span>Correo Institucional</span>
+								<input type="email" />
+							</div>
+							<div>
+								<span>Contraseña</span>
+								<input type="password" />
+							</div>
+						</form>
+					</div>
 				</div>
 			</div>
 		</div>
