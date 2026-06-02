@@ -21,19 +21,24 @@ function LoginPage() {
 							<div className="flex  flex-col gap-4">
 								<div className="flex flex-col">
 									<span className="font-semibold text-slate-800 text-md">Correo Institucional</span>
-									<input type="email" className="border shadow-sm border-slate-300 rounded-md h-8" />
+									<input type="email" className="border shadow-sm border-slate-300 rounded-md h-8.5" />
 								</div>
 								<div className="flex flex-col">
 									<span className="font-semibold text-slate-800 text-md">Contraseña</span>
-									<input type="password" className="border border-slate-300 shadow-sm rounded-md h-8" />
+									<input type="password" className="border border-slate-300 shadow-sm rounded-md h-8.5" />
 								</div>
 							</div>
 							<div>
-								<button type="submit" className="h-8 bg-[#008BBA]">
+								<button type="submit" className="h-8.5 mt-4 w-full rounded-md bg-[#008BBA] text-white">
 									Iniciar Sesion
 								</button>
 							</div>
 						</form>
+						<div className="w-full flex justify-center mt-5  text-center">
+							<h3 className="text-slate-600 text-sm font-medium">
+								¿No tienes cuenta? <span className="text-[#008BBA]">Registrate</span>
+							</h3>
+						</div>
 					</div>
 				</div>
 			</div>
