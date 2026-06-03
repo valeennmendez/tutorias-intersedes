@@ -9,7 +9,7 @@ function SignUpPage() {
 			<div className="flex flex-col w-full h-full justify-center items-center gap-3">
 				<div className="flex flex-col items-center">
 					<div>
-						<img src="/logo-unnoba.png" alt="logo-unnoba" className="rounded-xl w-30" />
+						<img src="/logo-unnoba.png" alt="logo-unnoba" className="rounded-xl w-25" />
 					</div>
 					<div className="text-center">
 						<h1 className="font-bold text-2xl">Crear Cuenta</h1>
