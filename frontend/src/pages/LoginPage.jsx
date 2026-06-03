@@ -1,3 +1,5 @@
+import { Lock, Mail } from "lucide-react";
+
 function LoginPage() {
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
@@ -11,25 +13,35 @@ function LoginPage() {
 						<h2 className="font-normal text-slate-600 text-sm">Universidad Nacional del Noroeste de la Provincia de Buenos Aires</h2>
 					</div>
 				</div>
-				<div className="bg-white rounded-lg shadow-md w-120 h-80 py-5">
+				<div className="bg-white rounded-lg shadow-md w-120 min-h-80 py-5">
 					<div className="flex flex-col items-center">
 						<h1 className="font-semibold text-xl">Iniciar Sesión</h1>
-						<h2 className="text-slate-600">Ingresa con tu correo institucional UNNOBA</h2>
+						<h2 className="text-slate-600 font-medium text-sm">Ingresa con tu correo institucional UNNOBA</h2>
 					</div>
-					<div className="px-5">
+					<div className="px-5 mt-4">
 						<form action="">
 							<div className="flex  flex-col gap-4">
-								<div className="flex flex-col">
+								<div className="flex flex-col relative ">
 									<span className="font-semibold text-slate-800 text-md">Correo Institucional</span>
-									<input type="email" className="border shadow-sm border-slate-300 rounded-md h-8.5" />
+									<Mail className="absolute bottom-1.5 left-4 size-5 text-slate-700" />
+									<input
+										type="email"
+										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
+										placeholder="usuario@comunidad.unnoba.edu.ar"
+									/>
 								</div>
-								<div className="flex flex-col">
+								<div className="flex flex-col relative">
 									<span className="font-semibold text-slate-800 text-md">Contraseña</span>
-									<input type="password" className="border border-slate-300 shadow-sm rounded-md h-8.5" />
+									<Lock className="absolute bottom-1.5 left-4 size-5 text-slate-700" />
+									<input
+										type="password"
+										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
+										placeholder="Tu contraseña"
+									/>
 								</div>
 							</div>
 							<div>
-								<button type="submit" className="h-8.5 mt-4 w-full rounded-md bg-[#008BBA] text-white">
+								<button type="submit" className="h-8.5 mt-4 w-full font-medium rounded-md bg-[#008BBA] text-white">
 									Iniciar Sesion
 								</button>
 							</div>
