@@ -1,6 +1,9 @@
 import { Lock, Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
+	const navigate = useNavigate();
+
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
 			<div className="flex flex-col w-full h-full justify-center items-center gap-8">
@@ -48,7 +51,12 @@ function LoginPage() {
 						</form>
 						<div className="w-full flex justify-center mt-5  text-center">
 							<h3 className="text-slate-600 text-sm font-medium">
-								¿No tienes cuenta? <span className="text-[#008BBA]">Registrate</span>
+								¿No tienes cuenta?{" "}
+								<span className="text-[#008BBA]">
+									<a href="" onClick={() => navigate("/signup")}>
+										Registrate
+									</a>{" "}
+								</span>
 							</h3>
 						</div>
 					</div>
