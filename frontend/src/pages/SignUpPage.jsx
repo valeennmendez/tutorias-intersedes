@@ -1,6 +1,9 @@
 import { Hash, Lock, Mail, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function SignUpPage() {
+	const navigate = useNavigate();
+
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
 			<div className="flex flex-col w-full h-full justify-center items-center gap-3">
@@ -91,6 +94,16 @@ function SignUpPage() {
 								</button>
 							</div>
 						</form>
+						<div className="w-full flex justify-center mt-4  text-center">
+							<h3 className="text-slate-600 text-sm font-medium">
+								¿Ya tienes cuenta?{" "}
+								<span className="text-[#008BBA]">
+									<a href="" onClick={() => navigate("/login")}>
+										Inicia Sesion
+									</a>{" "}
+								</span>
+							</h3>
+						</div>
 					</div>
 				</div>
 			</div>
