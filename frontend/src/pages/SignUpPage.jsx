@@ -16,7 +16,7 @@ function SignUpPage() {
 						<h2 className="font-normal text-slate-600 text-sm">Sistema de Tutorías UNNOBA</h2>
 					</div>
 				</div>
-				<div className="bg-white rounded-lg shadow-md w-120 min-h-80 py-5">
+				<div className="bg-white rounded-lg shadow-md w-120 min-h-80 py-3">
 					<div className="flex flex-col items-center">
 						<h1 className="font-semibold text-xl">Registro</h1>
 						<h2 className="text-slate-600 font-medium text-sm">Completa tus datos para crear tu cuenta</h2>
@@ -77,6 +77,7 @@ function SignUpPage() {
 									type="password"
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="Mínimo 6 caracteres"
+									minLength={6}
 								/>
 							</div>
 							<div className="flex flex-col relative mt-3">
