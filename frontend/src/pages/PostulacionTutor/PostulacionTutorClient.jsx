@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DashboardHeader } from "@/components/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +25,10 @@ import { es } from "date-fns/locale";
 
 const HARDCODED_PROFILE = {
   id: "user-123",
-  nombre: "Juan Pérez",
+  nombre: "Juan",
+  apellido: "Pérez",
   email: "juan@example.com",
+  role: "alumno",
 };
 
 const HARDCODED_MATERIAS = [
@@ -165,13 +168,15 @@ export function PostulacionTutorClient() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Postulación como Tutor</h1>
-        <p className="text-muted-foreground mt-2">
-          Postúlate para ser tutor en las materias que hayas aprobado
-        </p>
-      </div>
+    <div>
+      <DashboardHeader profile={profile} />
+      <div className="container mx-auto space-y-6 p-6">
+        <div>
+          <h1 className="text-3xl font-bold">Postulación como Tutor</h1>
+          <p className="text-muted-foreground mt-2">
+            Postúlate para ser tutor en las materias que hayas aprobado
+          </p>
+        </div>
 
       {/* Benefits */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -349,6 +354,7 @@ export function PostulacionTutorClient() {
             )}
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );
