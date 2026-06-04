@@ -21,7 +21,7 @@ public class JwtTokenUtil {
      private Algorithm algorithm;
 
 
-    @Value("${jwt.secret-key:MiClavePorDefecto}")
+    @Value("${jwt.secret-key}")
      private String secretKey;
 
     @PostConstruct

@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,9 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-
 
 @Configuration
 @EnableMethodSecurity
@@ -30,13 +28,13 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
 
-
     public SecurityConfig(
-        JwtAuthenticationFilter jwtAuthenticationFilter,
-        UserDetailsService userDetailsService) {
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    this.userDetailsService = userDetailsService;
-}
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            UserDetailsService userDetailsService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -44,12 +42,16 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -64,127 +66,40 @@ public class SecurityConfig {
         return source;
     }
 
-
-    
-
-
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
-
-
-   @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        
-        //Lo deje para que despues sigamos la misma estructura
-
         http
             .csrf(csrf -> csrf.disable())
-             .cors(cors -> {})
+            .cors(cors -> {})
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-
-                
-                //AUTENTICACIÓN / REGISTRO
-                // =========================
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/verify-otp").permitAll()
                 .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
-                .requestMatchers(
-                    "/alumnos/register", "/alumnos/auth",
-                    "/docentes/register", "/docentes/auth"
-                ).permitAll()
 
-                
-                // CURSOS
-                // =========================
-                .requestMatchers(HttpMethod.GET, "/cursos/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/cursos/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.PUT,  "/cursos/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.DELETE, "/cursos/**").hasAnyRole("ADMIN", "DOCENTE")
+                .requestMatchers(HttpMethod.GET, "/materias/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/materias/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/materias/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/materias/**").hasRole("ADMIN")
 
-                
-                // ALUMNOS
-                // =========================
-                .requestMatchers(HttpMethod.POST, "/alumnos/create").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.PUT, "/alumnos/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.DELETE, "/alumnos/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.GET, "/alumnos").authenticated()
+                .requestMatchers(HttpMethod.GET, "/tutorias/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
 
-
-                .requestMatchers(HttpMethod.GET, "/alumnos/**").hasAnyRole("ADMIN", "DOCENTE")
-
-                                
-                // DOCENTES
-                // =========================
-               
-                .requestMatchers(HttpMethod.DELETE, "/docentes/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/docentes/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/docentes/create/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/docentes").authenticated()
-                .requestMatchers(HttpMethod.GET, "/docentes/**").hasAnyRole("ADMIN", "DOCENTE")
-
-            
-                // ASISTENCIAS
-                // =========================
-                .requestMatchers(HttpMethod.GET, "/asistencias/**")
-                    .hasAnyRole("ADMIN", "DOCENTE", "ALUMNO")
-                .requestMatchers(HttpMethod.POST, "/asistencias/**")
-                    .hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.PUT, "/asistencias/**")
-                    .hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.DELETE, "/asistencias/**")
-                    .hasAnyRole("ADMIN", "DOCENTE")
-
-                // FILES
-                // =========================
-                .requestMatchers(HttpMethod.POST, "/files/upload")
-                    .hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.GET, "/files/download/**")
-                    .authenticated()
-
-                
-                //EXÁMENES
-                // =========================
-                .requestMatchers(HttpMethod.GET, "/examenes/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/examenes/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.PUT,  "/examenes/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.DELETE, "/examenes/**").hasAnyRole("ADMIN", "DOCENTE")
-                
-
-                
-                // ENTREGAS
-                // =========================
-                .requestMatchers(HttpMethod.GET, "/entregas/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/entregas/alumno/**").hasAnyRole("ALUMNO", "DOCENTE", "ADMIN")
-                .requestMatchers(HttpMethod.POST,"/entregas/examen/*/alumno/*").hasRole("ALUMNO")
-                .requestMatchers(HttpMethod.POST, "/entregas/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.PUT,  "/entregas/**").hasAnyRole("ADMIN", "DOCENTE")
-                .requestMatchers(HttpMethod.DELETE, "/entregas/**").hasAnyRole("ADMIN", "DOCENTE")
-
-
-                // MERCADO PAGO
-                // =========================
-                .requestMatchers(HttpMethod.POST, "/pagos/mercadoPago").permitAll()
-                .requestMatchers(HttpMethod.POST, "/pagos/webhook").permitAll()
-                .requestMatchers(HttpMethod.GET, "/pagos/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/pagos/crear").hasAnyRole("ADMIN")
-                .requestMatchers("/webhooks/**").permitAll()
-                .requestMatchers("/auth/**").permitAll()                            
-                
-
-
-                
-                // ADMIN
-                // =========================
+                .requestMatchers("/inscripciones/**").hasAnyRole("ALUMNO", "ADMIN")
+                .requestMatchers("/feedback/**").hasAnyRole("ALUMNO", "ADMIN")
+                .requestMatchers("/avisos/**").hasAnyRole("TUTOR", "ADMIN", "ALUMNO")
+                .requestMatchers("/certificados/**").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers("/solicitudes-tutor/**").authenticated()
+                .requestMatchers("/alumnos/**").hasAnyRole("ALUMNO", "ADMIN")
+                .requestMatchers("/tutores/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                
                 .anyRequest().authenticated()
             )
             .addFilterBefore(
@@ -194,5 +109,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-} 
+}
