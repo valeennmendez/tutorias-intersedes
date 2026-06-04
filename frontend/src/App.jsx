@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import PruebaPage from "./pages/PruebaPage";
-import { PostulacionTutorClient } from "./components/PostulacionTutor/PostulacionTutorClient";
+import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorClient";
 
 function App() {
 	return (

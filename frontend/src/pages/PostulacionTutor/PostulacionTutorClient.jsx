@@ -353,3 +353,5 @@ export function PostulacionTutorClient() {
     </div>
   );
 }
+
+export default PostulacionTutorClient;
