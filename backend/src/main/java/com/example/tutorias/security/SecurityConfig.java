@@ -79,6 +79,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/verify-otp").permitAll()
+                .requestMatchers("/error").permitAll() // Permitir acceso a la página de error sin autenticación
                 .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/materias/**").authenticated()

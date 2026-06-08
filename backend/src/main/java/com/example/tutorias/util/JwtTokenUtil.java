@@ -29,10 +29,11 @@ public class JwtTokenUtil {
         this.algorithm = Algorithm.HMAC512(secretKey);
     }
 
-      public String generateToken(String subject){
+      public String generateToken(String subject, String role) {
         
         String token = JWT.create()
             .withSubject(subject)
+            .withClaim("role", role)  
             .withIssuedAt(new Date())
             .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
             .sign(algorithm);

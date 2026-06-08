@@ -26,16 +26,14 @@ public class UserDetailsImpl implements UserDetails {
         );
     }
 
-
+    @Override
+    public String getUsername() {
+        return persona.getEmail(); // Usamos el email como username, se ve que la interfaz UserDetailsService busca por username pero en nuestro caso el email es único y se usa para login
+    }
 
     @Override
     public String getPassword() {
         return persona.getPassword();
-    }
-
-    @Override
-    public String getUsername() {
-        return persona.getUsername();
     }
 
     @Override public boolean isAccountNonExpired() { return true; }

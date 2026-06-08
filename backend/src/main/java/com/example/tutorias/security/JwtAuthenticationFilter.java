@@ -62,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
         String token = authHeader.substring(7); 
-        String username = jwtTokenUtil.getSubject(token);
+        String email = jwtTokenUtil.getSubject(token);
 
-        if (username != null &&
+        if (email != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null &&
                 jwtTokenUtil.verify(token)) {
 
                 var userDetails =
-                        userDetailsService.loadUserByUsername(username);
+                        userDetailsService.loadUserByUsername(email);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
