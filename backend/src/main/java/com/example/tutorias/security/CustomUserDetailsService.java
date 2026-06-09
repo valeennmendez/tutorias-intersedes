@@ -21,16 +21,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.personaRepository = personaRepository;
     }
 
+    //No deja editar la interfaz UserDetailsService, pero el método loadUserByUsername busca por username, en nuestro caso el email es único y se usa para login, así que lo renombramos a email
     @Override
-    public UserDetails loadUserByUsername(String username)
-            throws UsernameNotFoundException {
-
-        Optional<Persona> persona = personaRepository.findByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<Persona> persona = personaRepository.findByEmail(email); //renombramos para que busqeu por email
 
         if (persona.isEmpty()) {
-            throw new UsernameNotFoundException("User not found: " + username);
+            throw new UsernameNotFoundException("Usuario no encontrado con el email: " + email);
         }
 
-        return (UserDetails) new UserDetailsImpl(persona.get());
+        return new UserDetailsImpl(persona.get());
     }
 }

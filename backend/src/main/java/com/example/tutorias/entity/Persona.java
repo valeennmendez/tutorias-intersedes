@@ -28,11 +28,22 @@ public abstract class Persona {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String nombre;
+
+    @Column(nullable = false)
+    private String apellido;
+
+    @Column(nullable = false, unique = true)
     private String email;
-    private String username;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private LocalDate fechanacimiento;
+
+    @Column(nullable = false)
     private String direccion;
 
     @Enumerated(EnumType.STRING)
@@ -41,5 +52,16 @@ public abstract class Persona {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    
+    public Persona() {
+    }
+    public Persona(String nombre, String apellido, String email, String password, LocalDate fechanacimiento, String direccion, Role role) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.email = email;
+        this.password = password;
+        this.fechanacimiento = fechanacimiento;
+        this.direccion = direccion;
+        this.role = role;
+        this.activo = true;
+    }
 }
