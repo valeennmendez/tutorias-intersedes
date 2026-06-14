@@ -2,8 +2,10 @@ import { Hash, Lock, Mail, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import carrerasUNNOBA from "../utils/carreras.js";
+import { useAuthStore } from "../store/auth.store.js";
 
 function SignUpPage() {
+	const { registrarUsuario } = useAuthStore();
 	const navigate = useNavigate();
 
 	const [dataRegistro, setDataRegistro] = useState({
@@ -15,9 +17,16 @@ function SignUpPage() {
 		carrera: "",
 		anioInicio: null,
 		password: "",
-		fechaNacimiento: "", // YYYY-MM-DD
-		direccion: "",
+		fechanacimiento: "2000-10-20", // YYYY-MM-DD
+		direccion: "Sin Direccion",
 	});
+
+	console.log("Datos registro: ", dataRegistro);
+
+	const submitFormulario = (e) => {
+		e.preventDefault();
+		registrarUsuario(dataRegistro);
+	};
 
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
@@ -37,7 +46,7 @@ function SignUpPage() {
 						<h2 className="text-slate-600 font-medium text-sm">Completa tus datos para crear tu cuenta</h2>
 					</div>
 					<div className="px-5 mt-4">
-						<form action="">
+						<form action="" onSubmit={(e) => submitFormulario(e)}>
 							<div className="grid grid-cols-2 gap-5">
 								<div className="flex flex-col relative gap-1">
 									<span className="font-semibold text-slate-800 text-md">Nombre</span>
@@ -82,7 +91,12 @@ function SignUpPage() {
 							<div className="grid grid-cols-2 gap-5 mt-3">
 								<div className="flex flex-col gap-1">
 									<span className="font-semibold text-slate-800 text-md">Carrera</span>
-									<select name="" id="" className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5">
+									<select
+										name=""
+										id=""
+										className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, carrera: e.target.value })}
+									>
 										{carrerasUNNOBA.map((c, idx) => (
 											<option value={c} key={idx}>
 												{c}
@@ -96,6 +110,7 @@ function SignUpPage() {
 										type="number"
 										className="pl-3 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
 										minLength={1900}
+										onChange={(e) => setDataRegistro({ ...dataRegistro, anioInicio: e.target.value })}
 										max={2100}
 									/>
 								</div>
