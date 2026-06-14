@@ -1,8 +1,23 @@
 import { Hash, Lock, Mail, User } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import carrerasUNNOBA from "../utils/carreras.js";
 
 function SignUpPage() {
 	const navigate = useNavigate();
+
+	const [dataRegistro, setDataRegistro] = useState({
+		nombre: "",
+		apellido: "",
+		dni: "",
+		email: "",
+		legajo: "",
+		carrera: "",
+		anioInicio: null,
+		password: "",
+		fechaNacimiento: "", // YYYY-MM-DD
+		direccion: "",
+	});
 
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
@@ -31,6 +46,7 @@ function SignUpPage() {
 										type="text"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 										placeholder="Juan"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, nombre: e.target.value })}
 									/>
 								</div>
 								<div className="flex flex-col relative gap-1">
@@ -39,6 +55,7 @@ function SignUpPage() {
 										type="text"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-3"
 										placeholder="Perez"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, apellido: e.target.value })}
 									/>
 								</div>
 							</div>
@@ -49,6 +66,7 @@ function SignUpPage() {
 									type="email"
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="usuario@comunidad.unnoba.edu.ar"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, email: e.target.value })}
 								/>
 							</div>
 							<div className="flex flex-col relative mt-3 gap-1">
@@ -58,16 +76,28 @@ function SignUpPage() {
 									type="number"
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="1234"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, dni: e.target.value, legajo: e.target.value })}
 								/>
 							</div>
 							<div className="grid grid-cols-2 gap-5 mt-3">
 								<div className="flex flex-col gap-1">
 									<span className="font-semibold text-slate-800 text-md">Carrera</span>
-									<select name="" id="" className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5"></select>
+									<select name="" id="" className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5">
+										{carrerasUNNOBA.map((c, idx) => (
+											<option value={c} key={idx}>
+												{c}
+											</option>
+										))}
+									</select>
 								</div>
 								<div className="flex flex-col gap-1">
-									<span className="font-semibold text-slate-800 text-md">Año</span>
-									<select name="" id="" className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5"></select>
+									<span className="font-semibold text-slate-800 text-md">Año de Inicio</span>
+									<input
+										type="number"
+										className="pl-3 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
+										minLength={1900}
+										max={2100}
+									/>
 								</div>
 							</div>
 							<div className="flex flex-col relative mt-3">
@@ -78,15 +108,7 @@ function SignUpPage() {
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="Mínimo 6 caracteres"
 									minLength={6}
-								/>
-							</div>
-							<div className="flex flex-col relative mt-3">
-								<span className="font-semibold text-slate-800 text-md">Repetir Contraseña</span>
-								<Lock className="absolute bottom-1.5 left-4 size-5 text-slate-700" />
-								<input
-									type="password"
-									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
-									placeholder="Repite tu contraseña"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, password: e.target.value })}
 								/>
 							</div>
 							<div>
