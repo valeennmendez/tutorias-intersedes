@@ -1,10 +1,10 @@
-import ProtectedRoute from "./components/ProtectedRoute";
-import { Toaster } from "react-hot-toast";
 import { Routes, Route } from "react-router-dom";
-import PruebaPage from "./pages/PruebaPage";
+import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import PruebaPage from "./pages/PruebaPage";
 import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorClient";
+import ProtecetedRoute from "./components/ProtectedRoute";
 
 function App() {
 	return (
@@ -14,13 +14,11 @@ function App() {
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignUpPage />} />
 
-				{/* Rutas protegidas */}
-				<Route path="/prueba"element={<ProtectedRoute><PruebaPage /></ProtectedRoute>}/>
-				<Route path="/postulacion-tutor" element={<ProtectedRoute>
-							<PostulacionTutorClient />
-						</ProtectedRoute>
-					}
-				/>
+				{/* Rutas protegidas agrupadas */}
+				<Route element={<ProtecetedRoute />}>
+					<Route path="/prueba" element={<PruebaPage />} />
+					<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
+				</Route>
 			</Routes>
 
 			<Toaster />
