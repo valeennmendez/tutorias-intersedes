@@ -92,11 +92,15 @@ function SignUpPage() {
 								<div className="flex flex-col gap-1">
 									<span className="font-semibold text-slate-800 text-md">Carrera</span>
 									<select
+										defaultValue={""}
 										name=""
 										id=""
 										className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
 										onChange={(e) => setDataRegistro({ ...dataRegistro, carrera: e.target.value })}
 									>
+										<option disabled value={""}>
+											Selecciona tu carrera
+										</option>
 										{carrerasUNNOBA.map((c, idx) => (
 											<option value={c} key={idx}>
 												{c}
@@ -112,6 +116,7 @@ function SignUpPage() {
 										minLength={1900}
 										onChange={(e) => setDataRegistro({ ...dataRegistro, anioInicio: e.target.value })}
 										max={2100}
+										placeholder="Año de inicio"
 									/>
 								</div>
 							</div>

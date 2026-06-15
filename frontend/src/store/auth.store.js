@@ -3,6 +3,22 @@ import { axiosInstance } from "../utils/axios";
 import toast from "react-hot-toast";
 
 export const useAuthStore = create(() => ({
+	token: null,
+
+	login: async (data) => {
+		try {
+			const res = await axiosInstance.post("/auth/login", data);
+
+			const { token } = res.data;
+
+			localStorage.setItem("token", token);
+
+			axiosInstance.defaults.headers.common["Authorization"];
+		} catch (error) {
+			console.log("Error al iniciar sesion", error.response?.data);
+		}
+	},
+
 	registrarUsuario: async (data) => {
 		try {
 			const res = await axiosInstance.post("/auth/register", data);
