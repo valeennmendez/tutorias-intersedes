@@ -1,8 +1,50 @@
 import { Hash, Lock, Mail, User } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import carrerasUNNOBA from "../utils/carreras.js";
+import { useAuthStore } from "../store/auth.store.js";
+import toast from "react-hot-toast";
 
 function SignUpPage() {
+	const { registrarUsuario } = useAuthStore();
 	const navigate = useNavigate();
+
+	const [dataRegistro, setDataRegistro] = useState({
+		nombre: "",
+		apellido: "",
+		dni: "",
+		email: "",
+		legajo: "",
+		carrera: "",
+		anioInicio: null,
+		password: "",
+		fechanacimiento: "2000-10-20", // YYYY-MM-DD
+		direccion: "Sin Direccion",
+	});
+
+	const submitFormulario = async (e) => {
+		e.preventDefault();
+		const resultado = validarCampos(dataRegistro);
+
+		if (!resultado.valido) {
+			toast.error(`El campo "${resultado.campo}" no puede estar vacío`);
+			return;
+		}
+
+		const status = await registrarUsuario(dataRegistro);
+		if (status === 200) {
+			navigate("/login");
+		}
+	};
+
+	function validarCampos(data) {
+		for (const [key, value] of Object.entries(data)) {
+			if (value === "" || value === null || value === undefined) {
+				return { valido: false, campo: key };
+			}
+		}
+		return { valido: true };
+	}
 
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
@@ -22,7 +64,7 @@ function SignUpPage() {
 						<h2 className="text-slate-600 font-medium text-sm">Completa tus datos para crear tu cuenta</h2>
 					</div>
 					<div className="px-5 mt-4">
-						<form action="">
+						<form action="" onSubmit={(e) => submitFormulario(e)}>
 							<div className="grid grid-cols-2 gap-5">
 								<div className="flex flex-col relative gap-1">
 									<span className="font-semibold text-slate-800 text-md">Nombre</span>
@@ -31,6 +73,7 @@ function SignUpPage() {
 										type="text"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 										placeholder="Juan"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, nombre: e.target.value })}
 									/>
 								</div>
 								<div className="flex flex-col relative gap-1">
@@ -39,6 +82,7 @@ function SignUpPage() {
 										type="text"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-3"
 										placeholder="Perez"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, apellido: e.target.value })}
 									/>
 								</div>
 							</div>
@@ -49,6 +93,7 @@ function SignUpPage() {
 									type="email"
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="usuario@comunidad.unnoba.edu.ar"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, email: e.target.value })}
 								/>
 							</div>
 							<div className="flex flex-col relative mt-3 gap-1">
@@ -58,16 +103,39 @@ function SignUpPage() {
 									type="number"
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="1234"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, dni: e.target.value, legajo: e.target.value })}
 								/>
 							</div>
 							<div className="grid grid-cols-2 gap-5 mt-3">
 								<div className="flex flex-col gap-1">
 									<span className="font-semibold text-slate-800 text-md">Carrera</span>
-									<select name="" id="" className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5"></select>
+									<select
+										defaultValue={""}
+										name=""
+										id=""
+										className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
+										onChange={(e) => setDataRegistro({ ...dataRegistro, carrera: e.target.value })}
+									>
+										<option disabled value={""}>
+											Selecciona tu carrera
+										</option>
+										{carrerasUNNOBA.map((c, idx) => (
+											<option value={c} key={idx}>
+												{c}
+											</option>
+										))}
+									</select>
 								</div>
 								<div className="flex flex-col gap-1">
-									<span className="font-semibold text-slate-800 text-md">Año</span>
-									<select name="" id="" className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5"></select>
+									<span className="font-semibold text-slate-800 text-md">Año de Inicio</span>
+									<input
+										type="number"
+										className="pl-3 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
+										minLength={1900}
+										onChange={(e) => setDataRegistro({ ...dataRegistro, anioInicio: e.target.value })}
+										max={2100}
+										placeholder="Año de inicio"
+									/>
 								</div>
 							</div>
 							<div className="flex flex-col relative mt-3">
@@ -78,15 +146,7 @@ function SignUpPage() {
 									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 									placeholder="Mínimo 6 caracteres"
 									minLength={6}
-								/>
-							</div>
-							<div className="flex flex-col relative mt-3">
-								<span className="font-semibold text-slate-800 text-md">Repetir Contraseña</span>
-								<Lock className="absolute bottom-1.5 left-4 size-5 text-slate-700" />
-								<input
-									type="password"
-									className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
-									placeholder="Repite tu contraseña"
+									onChange={(e) => setDataRegistro({ ...dataRegistro, password: e.target.value })}
 								/>
 							</div>
 							<div>

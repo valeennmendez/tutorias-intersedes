@@ -1,8 +1,30 @@
 import { Lock, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/auth.store";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 function LoginPage() {
 	const navigate = useNavigate();
+	const { login } = useAuthStore();
+	const [dataLogin, setDataLogin] = useState({
+		email: "",
+		password: "",
+	});
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		const status = await login(dataLogin);
+		if (status === 200) {
+			console.log("status: ", status);
+			navigate("/");
+		}
+	};
+
+	function validarCorreoInstitucional(email) {
+		const regex = /^[^@]+@comunidad\.unnoba\.edu\.ar$/;
+		return regex.test(email);
+	}
 
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
@@ -22,7 +44,7 @@ function LoginPage() {
 						<h2 className="text-slate-600 font-medium text-sm">Ingresa con tu correo institucional UNNOBA</h2>
 					</div>
 					<div className="px-5 mt-4">
-						<form action="">
+						<form action="" onSubmit={(e) => handleSubmit(e)}>
 							<div className="flex  flex-col gap-4">
 								<div className="flex flex-col relative ">
 									<span className="font-semibold text-slate-800 text-md">Correo Institucional</span>
@@ -31,6 +53,13 @@ function LoginPage() {
 										type="email"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 										placeholder="usuario@comunidad.unnoba.edu.ar"
+										onBlur={(e) => {
+											const value = e.target.value;
+											if (!validarCorreoInstitucional(value)) {
+												toast.error("El correo debe ser institucional (@comunidad.unnoba.edu.ar)");
+											}
+										}}
+										onChange={(e) => setDataLogin({ ...dataLogin, email: e.target.value })}
 									/>
 								</div>
 								<div className="flex flex-col relative">
@@ -40,6 +69,7 @@ function LoginPage() {
 										type="password"
 										className="border shadow-sm font-medium border-slate-300 rounded-md h-8.5 pl-12"
 										placeholder="Tu contraseña"
+										onChange={(e) => setDataLogin({ ...dataLogin, password: e.target.value })}
 									/>
 								</div>
 							</div>
