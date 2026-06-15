@@ -22,9 +22,7 @@ function SignUpPage() {
 		direccion: "Sin Direccion",
 	});
 
-	console.log("Datos registro: ", dataRegistro);
-
-	const submitFormulario = (e) => {
+	const submitFormulario = async (e) => {
 		e.preventDefault();
 		const resultado = validarCampos(dataRegistro);
 
@@ -33,7 +31,10 @@ function SignUpPage() {
 			return;
 		}
 
-		registrarUsuario(dataRegistro);
+		const status = await registrarUsuario(dataRegistro);
+		if (status === 200) {
+			navigate("/login");
+		}
 	};
 
 	function validarCampos(data) {

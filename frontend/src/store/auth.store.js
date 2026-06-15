@@ -33,7 +33,7 @@ export const useAuthStore = create(() => ({
 			console.log(res);
 			toast.success(res.data);
 
-			return res.data;
+			return res.status;
 		} catch (error) {
 			const backendError = error.response?.data;
 
