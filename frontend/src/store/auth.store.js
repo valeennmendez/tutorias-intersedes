@@ -9,17 +9,21 @@ export const useAuthStore = create(() => ({
 		try {
 			const res = await axiosInstance.post("/auth/login", data);
 
-			if(res.status === 200){
-				toast.success("Login exitoso.")
+			if (res.status === 200) {
+				toast.success("Login exitoso.");
 			}
 
-			const { token } = res.data;
+			const token = res.data;
 
 			localStorage.setItem("token", token);
 
+			console.log("token: ", token);
+
 			axiosInstance.defaults.headers.common["Authorization"];
+			return res.status;
 		} catch (error) {
 			console.log("Error al iniciar sesion", error.response?.data);
+			toast.error("El correo y/o contaseña son incorrectos");
 		}
 	},
 
