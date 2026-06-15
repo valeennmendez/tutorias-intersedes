@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import carrerasUNNOBA from "../utils/carreras.js";
 import { useAuthStore } from "../store/auth.store.js";
+import toast from "react-hot-toast";
 
 function SignUpPage() {
 	const { registrarUsuario } = useAuthStore();
@@ -25,8 +26,24 @@ function SignUpPage() {
 
 	const submitFormulario = (e) => {
 		e.preventDefault();
+		const resultado = validarCampos(dataRegistro);
+
+		if (!resultado.valido) {
+			toast.error(`El campo "${resultado.campo}" no puede estar vacío`);
+			return;
+		}
+
 		registrarUsuario(dataRegistro);
 	};
+
+	function validarCampos(data) {
+		for (const [key, value] of Object.entries(data)) {
+			if (value === "" || value === null || value === undefined) {
+				return { valido: false, campo: key };
+			}
+		}
+		return { valido: true };
+	}
 
 	return (
 		<div className="bg-[#F7F9FB] h-screen w-screen">
