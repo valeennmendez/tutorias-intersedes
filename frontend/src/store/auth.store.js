@@ -9,6 +9,10 @@ export const useAuthStore = create(() => ({
 		try {
 			const res = await axiosInstance.post("/auth/login", data);
 
+			if(res.status === 200){
+				toast.success("Login exitoso.")
+			}
+
 			const { token } = res.data;
 
 			localStorage.setItem("token", token);
