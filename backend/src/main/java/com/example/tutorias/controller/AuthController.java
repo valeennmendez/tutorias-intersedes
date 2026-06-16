@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.tutorias.dto.auth.LoginRequestDTO;
+import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
 import com.example.tutorias.dto.auth.UsuarioResponseDTO;
 import com.example.tutorias.service.AuthService;
@@ -36,9 +37,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginRequestDTO loginRequest) {
-        String token = authService.loginUser(loginRequest);
-        return ResponseEntity.ok(token);
+    public ResponseEntity<LoginResponseDTO> loginUser(@RequestBody LoginRequestDTO loginRequest) {
+        LoginResponseDTO response = authService.loginUser(loginRequest);
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/usuarios/{id}")
