@@ -6,6 +6,7 @@ import PruebaPage from "./pages/PruebaPage";
 import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorClient";
 import ProtecetedRoute from "./components/ProtectedRoute";
 import CrearTutoriaPage from "./pages/CrearTutoriaPage";
+import LayoutNavbar from "./components/layouts/LayoutNavbar";
 
 function App() {
 	return (
@@ -17,9 +18,11 @@ function App() {
 
 				{/* Rutas protegidas agrupadas */}
 				<Route element={<ProtecetedRoute />}>
-					<Route path="/prueba" element={<PruebaPage />} />
-					<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
-					<Route path="/crear-tutoria" element={<CrearTutoriaPage />} />
+					<Route element={<LayoutNavbar />}>
+						<Route path="/prueba" element={<PruebaPage />} />
+						<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
+						<Route path="/crear-tutoria" element={<CrearTutoriaPage />} />
+					</Route>
 				</Route>
 			</Routes>
 

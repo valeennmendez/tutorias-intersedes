@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-import { Header } from "../header";
+import { DashboardHeader } from "../header";
 
 function LayoutNavbar() {
 	return (
 		<>
-			<Header />
+			<DashboardHeader profile={"admin"} />
 			<main>
 				<Outlet />
 			</main>
