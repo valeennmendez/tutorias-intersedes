@@ -61,7 +61,7 @@ export function DashboardHeader({ profile }) {
 	}
 
 	return (
-		<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+		<header className="sticky top-0 z-50 border-b border-slate-200 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container mx-auto flex h-16 items-center justify-between px-4">
 				<Link to="/dashboard" className="flex items-center gap-3">
 					<img src={logo} alt="UNNOBA Logo" width={120} height={60} className="h-10 w-auto" />
