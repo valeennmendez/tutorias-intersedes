@@ -5,6 +5,7 @@ import SignUpPage from "./pages/SignUpPage";
 import PruebaPage from "./pages/PruebaPage";
 import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorClient";
 import ProtecetedRoute from "./components/ProtectedRoute";
+import CrearTutoriaPage from "./pages/CrearTutoriaPage";
 
 function App() {
 	return (
@@ -18,6 +19,7 @@ function App() {
 				<Route element={<ProtecetedRoute />}>
 					<Route path="/prueba" element={<PruebaPage />} />
 					<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
+					<Route path="/crear-tutoria" element={<CrearTutoriaPage />} />
 				</Route>
 			</Routes>
 
