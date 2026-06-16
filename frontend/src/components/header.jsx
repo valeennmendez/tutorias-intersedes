@@ -26,10 +26,10 @@ export function DashboardHeader({ profile }) {
 	const handleLogout = async () => {
 		navigate("/");
 	};
-	/* 
-  const getInitials = (nombre, apellido) => {
-    return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
-  }; */
+
+	const getInitials = (nombre, apellido) => {
+		return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+	};
 
 	const getRoleLabel = (role) => {
 		switch (role) {
@@ -94,7 +94,7 @@ export function DashboardHeader({ profile }) {
 							<Button variant="ghost" className="gap-2 px-2">
 								<Avatar className="h-8 w-8">
 									<AvatarFallback className="bg-primary text-primary-foreground text-sm">
-										{/* {getInitials(profile.nombre, profile.apellido)} */}
+										{getInitials(profile.nombre, profile.apellido)}
 									</AvatarFallback>
 								</Avatar>
 								<span className="hidden sm:inline-block text-sm font-medium">{profile.nombre}</span>

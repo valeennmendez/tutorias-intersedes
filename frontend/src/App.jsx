@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import PruebaPage from "./pages/PruebaPage";
@@ -7,8 +8,15 @@ import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorCli
 import ProtecetedRoute from "./components/ProtectedRoute";
 import CrearTutoriaPage from "./pages/CrearTutoriaPage";
 import LayoutNavbar from "./components/layouts/LayoutNavbar";
+import { useAuthStore } from "./store/auth.store";
 
 function App() {
+	const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
+	useEffect(() => {
+		initializeAuth();
+	}, [initializeAuth]);
+
 	return (
 		<div className="light bg-white text-black min-h-screen" style={{ colorScheme: "light" }}>
 			<Routes>
