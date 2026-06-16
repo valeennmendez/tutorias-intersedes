@@ -57,7 +57,7 @@ export function DashboardHeader({ profile }) {
 	}
 
 	if (profile.role === "alumno") {
-		navItems.push({ href: "/dashboard/postulacion-tutor", label: "Ser Tutor", icon: ClipboardList });
+		navItems.push({ href: "/postulacion-tutor", label: "Ser Tutor", icon: ClipboardList });
 	}
 
 	return (

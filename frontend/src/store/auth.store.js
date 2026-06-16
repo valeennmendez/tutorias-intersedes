@@ -19,13 +19,12 @@ export const useAuthStore = create((set) => ({
 			localStorage.setItem("token", token);
 			localStorage.setItem("user", JSON.stringify(usuario));
 
-
 			const userData = {
 				id: usuario.id,
 				nombre: usuario.nombre,
 				apellido: usuario.apellido,
 				email: usuario.email,
-				role: usuario.role.toLowerCase(), 
+				role: usuario.role.toLowerCase(),
 			};
 
 			set({ token, user: userData });
