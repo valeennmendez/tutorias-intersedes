@@ -16,14 +16,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, Shield, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuthStore } from "../store/auth.store";
 
 export function DashboardHeader({ profile }) {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const { logout } = useAuthStore();
 	const pathname = location.pathname;
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 	const handleLogout = async () => {
+		logout();
 		navigate("/");
 	};
 
