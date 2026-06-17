@@ -5,7 +5,7 @@ function CrearTutoriaPage() {
 	const [seleccion, setSeleccion] = useState(null);
 
 	return (
-		<div className="bg-[#F7F9FB] w-scree px-20 py-10 h-screen">
+		<div className="bg-[#F7F9FB] px-20 py-10 min-h-screen">
 			<div>
 				<h1 className="font-bold text-2xl">Nueva Tutoria</h1>
 				<h3 className="text-slate-800 text-md">Crear nueva sesión de tutoría para tus compañeros</h3>
@@ -114,6 +114,11 @@ function CrearTutoriaPage() {
 									placeholder={seleccion === "P" ? "Ej: Edificio Rivadavia Salon 1" : "Ingrese su sala de Google Meet"}
 								/>
 							</div>
+						</div>
+						<div>
+							<button type="submit" className="bg-[#008BBA] text-white w-30 h-10 rounded-lg font-medium cursor-pointer mt-5">
+								Crear Tutoría
+							</button>
 						</div>
 					</form>
 				</div>
