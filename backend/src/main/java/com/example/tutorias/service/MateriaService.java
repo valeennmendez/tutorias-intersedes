@@ -31,7 +31,7 @@ public class MateriaService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tutor no está aprobado");
         }
 
-        return materiaRepository.findByTutorId(tutorId).stream()
+        return tutor.getMaterias().stream()
                 .map(MateriaResponse::from)
                 .toList();
     }

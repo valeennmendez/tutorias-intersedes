@@ -8,5 +8,4 @@ import java.util.List;
 
 @Repository
 public interface MateriaRepository extends JpaRepository<Materia, Long> {
-    List<Materia> findByTutorId(Long tutorId);
 }
