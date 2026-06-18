@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Getter
@@ -34,8 +36,13 @@ public class Tutor extends Persona {
     @OneToMany(mappedBy = "tutor")
     private List<Aviso> avisos;
 
-    @OneToMany(mappedBy = "tutor")
-    private List<Materia> materias;
+    @ManyToMany
+    @JoinTable(
+        name = "tutor_materia",
+        joinColumns = @JoinColumn(name = "tutor_id"),
+        inverseJoinColumns = @JoinColumn(name = "materia_id")
+    )
+    private Set<Materia> materias = new HashSet<>();
 
     @OneToMany(mappedBy = "tutor")
     private List<Certificado> certificados;
