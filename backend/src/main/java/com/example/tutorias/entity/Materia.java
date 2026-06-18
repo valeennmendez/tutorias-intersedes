@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Getter
@@ -17,11 +19,10 @@ public class Materia {
     private Long id;
     private String nombre;
 
-    @ManyToOne
-    @JoinColumn(name = "tutor_id")
-    private Tutor tutor;
-
     // Una materia puede tener asignadas muchas tutorías
     @OneToMany(mappedBy = "materia")
     private List<Tutoria> tutorias;
+
+    @ManyToMany(mappedBy = "materias")
+    private Set<Tutor> tutores = new HashSet<>();
 }
