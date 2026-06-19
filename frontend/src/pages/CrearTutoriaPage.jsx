@@ -55,10 +55,8 @@ function CrearTutoriaPage() {
 			linkVirtual: seleccion === "V" ? ubiOrLink : "",
 		};
 
-		console.log("Data form: ", payload);
 		tutoriaStore.getState().crearTutoria(payload);
 
-		// Aquí puedes enviar `payload` a la API en vez de depender de `dataForm` actualizado.
 	};
 
 	return (
