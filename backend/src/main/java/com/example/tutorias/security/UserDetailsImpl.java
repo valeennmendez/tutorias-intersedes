@@ -36,6 +36,11 @@ public class UserDetailsImpl implements UserDetails {
         return persona.getPassword();
     }
 
+    // Agregamos método para retornar el ID de la persona, esto puede ser útil para obtener el usuario logueado
+    public Long getId() {
+        return persona.getId();
+    }
+
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }

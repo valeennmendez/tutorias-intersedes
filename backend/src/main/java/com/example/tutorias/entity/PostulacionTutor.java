@@ -52,6 +52,13 @@ public class PostulacionTutor {
     @Column(name = "pdf_path")
     private String pdfPath;
 
+    @Column(name = "sede_preferencia", nullable = false)
+    private String sedePreferencia;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "modalidad_preferencia", nullable = false)
+    private ModalidadTutoria modalidadPreferencia; // Reutilizamos el enum del equipo
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
