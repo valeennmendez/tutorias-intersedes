@@ -1,6 +1,7 @@
 package com.example.tutorias.service;
 
 import com.example.tutorias.dto.auth.LoginRequestDTO;
+import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
 import com.example.tutorias.dto.auth.UsuarioResponseDTO;
 import com.example.tutorias.entity.Alumno;
@@ -91,7 +92,7 @@ public class AuthServiceImp implements AuthService {
     }
 
     @Override
-    public String loginUser(LoginRequestDTO loginRequest) {
+    public LoginResponseDTO loginUser(LoginRequestDTO loginRequest) {
         // Spring Security se encarga de autenticar al usuario usando el AuthenticationManager, que a su vez usa el CustomUserDetailsService para cargar el usuario (con email) y verificar la contraseña
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
@@ -105,7 +106,24 @@ public class AuthServiceImp implements AuthService {
             .map(grantedAuthority -> grantedAuthority.getAuthority())
             .orElseThrow(() -> new RuntimeException("Usuario autenticado sin rol asignado."));
 
-        return jwtTokenUtil.generateToken(loginRequest.getEmail(), role); 
+        // Obtener los datos completos del usuario
+        String emailLimpio = loginRequest.getEmail().trim().toLowerCase();
+        Persona persona = personaRepository.findByEmail(emailLimpio)
+            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado."));
+
+        // Generar el token
+        String token = jwtTokenUtil.generateToken(emailLimpio, role);
+        
+        // Crear DTO de respuesta con token y datos del usuario
+        UsuarioResponseDTO usuarioDTO = new UsuarioResponseDTO(
+            persona.getId(),
+            persona.getNombre(),
+            persona.getApellido(),
+            persona.getEmail(),
+            persona.getRole()
+        );
+        
+        return new LoginResponseDTO(token, usuarioDTO);
     }
 
     public UsuarioResponseDTO getUsuarioById(Long id) {
