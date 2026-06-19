@@ -7,11 +7,12 @@ function CrearTutoriaPage() {
 	const [seleccion, setSeleccion] = useState(null);
 	const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
 	const materiasTutor = materiaStore((state) => state.materiasTutor);
+	const [ubiOrLink, setUbiOrLink] = useState("");
 	const [dataForm, setDataForm] = useState({
 		nombre: "",
 		descripcion: "",
 		tutorId: null,
-		materiaId: null,
+		materiaId: materiaSeleccionada,
 		fecha: "",
 		horaInicio: "",
 		horaFin: "",
@@ -36,12 +37,23 @@ function CrearTutoriaPage() {
 			return;
 		}
 
+		if (!seleccion) {
+			toast.error("Debes seleccionar una modalidad.");
+			return;
+		}
+
+		const modalidad = seleccion === "P" ? "PRESENCIAL" : seleccion === "V" ? "VIRTUAL" : "";
 		const payload = {
+			...dataForm,
 			materiaId: materiaSeleccionada,
-			modalidad: seleccion,
+			modalidad,
+			ubicacion: seleccion === "P" ? ubiOrLink : "",
+			linkVirtual: seleccion === "V" ? ubiOrLink : "",
 		};
 
-		console.log("Enviar formulario", payload);
+		console.log("Data form: ", payload);
+
+		// Aquí puedes enviar `payload` a la API en vez de depender de `dataForm` actualizado.
 	};
 
 	return (
@@ -80,12 +92,13 @@ function CrearTutoriaPage() {
 							</div>
 							<div>
 								<div className="flex flex-col relative mt-3 gap-1">
-									<span className="font-semibold text-slate-800 text-md">Correo Institucional</span>
+									<span className="font-semibold text-slate-800 text-md">Cupo Máximo de Alumnos</span>
 									<Users2Icon className="absolute bottom-1.5 left-4 size-5 text-slate-500" />
 									<input
 										type="number"
 										className="border shadow-sm font-medium border-slate-300 rounded-md w-100 h-8.5 pl-12"
 										placeholder="Ingresa el cupo máximo"
+										onChange={(e) => setDataForm({ ...dataForm, cupo: e.target.value })}
 									/>
 								</div>
 							</div>
@@ -97,6 +110,7 @@ function CrearTutoriaPage() {
 								type="text"
 								className="border shadow-sm font-medium border-slate-300 rounded-md w-full h-8.5 pl-12"
 								placeholder="Ej: Repaso para parcial de POO"
+								onChange={(e) => setDataForm({ ...dataForm, nombre: e.target.value })}
 							/>
 						</div>
 						<div className="flex flex-col relative mt-3 gap-1">
@@ -105,6 +119,7 @@ function CrearTutoriaPage() {
 								className="border shadow-sm h-15 max-h-20 font-medium border-slate-300 rounded-md w-full  px-3 py-2"
 								maxLength={200}
 								placeholder="Describe que temas se van a tratar, que deben traer los estudiantes, etc. (Máx 200 caracteres)"
+								onChange={(e) => setDataForm({ ...dataForm, descripcion: e.target.value })}
 							/>
 						</div>
 						<div className="grid grid-cols-3 gap-5">
@@ -115,7 +130,8 @@ function CrearTutoriaPage() {
 									<input
 										type="date"
 										className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
-										placeholder="Ej: Repaso para parcial de POO"
+										onChange={(e) => setDataForm({ ...dataForm, fecha: e.target.value })}
+										required
 									/>
 								</div>
 							</div>
@@ -123,14 +139,24 @@ function CrearTutoriaPage() {
 								<span className="font-semibold text-slate-800 text-md">Hora Inicio</span>
 								<div className="border px-2 rounded-md shadow-sm border-slate-300">
 									<Calendar className="absolute bottom-2 left-2.5 size-5 text-slate-500" />
-									<input type="time" className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8" />
+									<input
+										type="time"
+										required
+										className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
+										onChange={(e) => setDataForm({ ...dataForm, horaInicio: e.target.value })}
+									/>
 								</div>
 							</div>
 							<div className="flex flex-col relative mt-3 gap-1">
 								<span className="font-semibold text-slate-800 text-md">Hora Fin</span>
 								<div className="border px-2 rounded-md shadow-sm border-slate-300">
 									<Calendar className="absolute bottom-2 left-2.5 size-5 text-slate-500" />
-									<input type="time" className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8" />
+									<input
+										type="time"
+										className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
+										onChange={(e) => setDataForm({ ...dataForm, horaFin: e.target.value })}
+										required
+									/>
 								</div>
 							</div>
 						</div>
@@ -165,6 +191,8 @@ function CrearTutoriaPage() {
 									type="text"
 									className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
 									placeholder={seleccion === "P" ? "Ej: Edificio Rivadavia Salon 1" : "Ingrese su sala de Google Meet"}
+									onChange={(e) => setUbiOrLink(e.target.value)}
+									required
 								/>
 							</div>
 						</div>
