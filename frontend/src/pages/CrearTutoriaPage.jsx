@@ -1,8 +1,33 @@
 import { Book, Calendar, MapPin, PenBoxIcon, Users2Icon, Video, VideoIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { materiaStore } from "../store/materias.store";
 
 function CrearTutoriaPage() {
 	const [seleccion, setSeleccion] = useState(null);
+	const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
+	const materiasTutor = materiaStore((state) => state.materiasTutor);
+
+	useEffect(() => {
+		const fetchMaterias = async () => {
+			await materiaStore.getState().obtenerMateriasTutor();
+		};
+
+		fetchMaterias();
+	}, []);
+
+	const handleSubmit = (event) => {
+		event.preventDefault();
+		if (!materiaSeleccionada) {
+			return;
+		}
+
+		const payload = {
+			materiaId: materiaSeleccionada,
+			modalidad: seleccion,
+		};
+
+		console.log("Enviar formulario", payload);
+	};
 
 	return (
 		<div className="bg-[#F7F9FB] px-20 py-10 min-h-screen">
@@ -16,13 +41,27 @@ function CrearTutoriaPage() {
 					<h4 className="text-slate-500 text-sm">Completa los datos para crear una nueva sesión</h4>
 				</div>
 				<div className="mt-3">
-					<form action="">
+					<form onSubmit={handleSubmit}>
 						<div className="flex flex-row justify-between ">
 							<div className="flex flex-col relative mt-3 gap-1">
 								<span className="font-semibold text-slate-800 text-md">Materia</span>
 								<div className="border px-2 rounded-md shadow-sm border-slate-300 w-100">
 									<Book className="absolute bottom-2 left-2.5 size-5 text-slate-500" />
-									<select className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"></select>
+									<select
+										value={materiaSeleccionada}
+										onChange={(event) => setMateriaSeleccionada(event.target.value)}
+										className="font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
+										required
+									>
+										<option value="" disabled>
+											Selecciona la materia a dar
+										</option>
+										{materiasTutor.map((mat) => (
+											<option value={mat.id} key={mat.id}>
+												{mat.nombre}
+											</option>
+										))}
+									</select>
 								</div>
 							</div>
 							<div>
