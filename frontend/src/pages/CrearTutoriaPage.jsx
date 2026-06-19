@@ -42,11 +42,14 @@ function CrearTutoriaPage() {
 			toast.error("Debes seleccionar una modalidad.");
 			return;
 		}
+		const storedUser = localStorage.getItem("user");
+		const user = storedUser ? JSON.parse(storedUser) : null;
 
 		const modalidad = seleccion === "P" ? "PRESENCIAL" : seleccion === "V" ? "VIRTUAL" : "";
 		const payload = {
 			...dataForm,
-			materiaId: materiaSeleccionada,
+			tutorId: user?.id ?? null,
+			materiaId: parseInt(materiaSeleccionada),
 			modalidad,
 			ubicacion: seleccion === "P" ? ubiOrLink : "",
 			linkVirtual: seleccion === "V" ? ubiOrLink : "",
