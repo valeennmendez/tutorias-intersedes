@@ -2,11 +2,12 @@ import { Book, Calendar, MapPin, PenBoxIcon, Users2Icon, Video, VideoIcon } from
 import { useEffect, useState } from "react";
 import { materiaStore } from "../store/materias.store";
 import toast from "react-hot-toast";
+import { tutoriaStore } from "../store/tutorias.store";
 
 function CrearTutoriaPage() {
+	const materiasTutor = materiaStore((state) => state.materiasTutor);
 	const [seleccion, setSeleccion] = useState(null);
 	const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
-	const materiasTutor = materiaStore((state) => state.materiasTutor);
 	const [ubiOrLink, setUbiOrLink] = useState("");
 	const [dataForm, setDataForm] = useState({
 		nombre: "",
@@ -52,6 +53,7 @@ function CrearTutoriaPage() {
 		};
 
 		console.log("Data form: ", payload);
+		tutoriaStore.getState().crearTutoria(payload);
 
 		// Aquí puedes enviar `payload` a la API en vez de depender de `dataForm` actualizado.
 	};
