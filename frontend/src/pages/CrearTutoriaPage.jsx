@@ -1,11 +1,25 @@
 import { Book, Calendar, MapPin, PenBoxIcon, Users2Icon, Video, VideoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { materiaStore } from "../store/materias.store";
+import toast from "react-hot-toast";
 
 function CrearTutoriaPage() {
 	const [seleccion, setSeleccion] = useState(null);
 	const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
 	const materiasTutor = materiaStore((state) => state.materiasTutor);
+	const [dataForm, setDataForm] = useState({
+		nombre: "",
+		descripcion: "",
+		tutorId: null,
+		materiaId: null,
+		fecha: "",
+		horaInicio: "",
+		horaFin: "",
+		modalidad: "",
+		ubicacion: "",
+		linkVirtual: "",
+		cupo: null,
+	});
 
 	useEffect(() => {
 		const fetchMaterias = async () => {
@@ -18,6 +32,7 @@ function CrearTutoriaPage() {
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		if (!materiaSeleccionada) {
+			toast.error("Debes seleccionar una materia.");
 			return;
 		}
 
@@ -51,7 +66,6 @@ function CrearTutoriaPage() {
 										value={materiaSeleccionada}
 										onChange={(event) => setMateriaSeleccionada(event.target.value)}
 										className="font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
-										required
 									>
 										<option value="" disabled>
 											Selecciona la materia a dar
