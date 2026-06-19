@@ -39,6 +39,9 @@ public class Tutoria {
 
     @Enumerated(EnumType.STRING)
     private EstadoTutoria estado = EstadoTutoria.ACTIVA;
+    
+    @Enumerated(EnumType.STRING)
+    private Sede sede;
 
     @ManyToOne
     @JoinColumn(name = "tutor_id")

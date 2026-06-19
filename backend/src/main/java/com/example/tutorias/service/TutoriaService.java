@@ -5,11 +5,15 @@ import com.example.tutorias.dto.tutoria.TutoriaResponse;
 import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
 import com.example.tutorias.repository.MateriaRepository;
 import com.example.tutorias.repository.TutorRepository;
 import com.example.tutorias.repository.TutoriaRepository;
+import com.example.tutorias.specification.TutoriaSpecification;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +64,10 @@ public class TutoriaService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El tutor ya tiene una tutoria en ese horario");
         }
 
+        if(request.getSede() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La sede es obligatoria");
+        }
+
         Tutoria tutoria = new Tutoria();
         tutoria.setNombre(request.getNombre());
         tutoria.setDescripcion(request.getDescripcion());
@@ -73,7 +81,7 @@ public class TutoriaService {
         tutoria.setEstado(EstadoTutoria.ACTIVA);
         tutoria.setTutor(tutor);
         tutoria.setMateria(materia);
-
+        tutoria.setSede(request.getSede());
         Tutoria guardada = tutoriaRepository.save(tutoria);
         return toResponse(guardada);
     }
@@ -131,5 +139,30 @@ public class TutoriaService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    @Transactional(readOnly = true)
+    public TutoriaResponse obtenerTutoriaPorId(Long id) {
+        Tutoria tutoria = tutoriaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoría no encontrada"));
+        
+        return toResponse(tutoria); 
+    }
+
+    @Transactional(readOnly = true)
+    public List<TutoriaResponse> buscarTutoriasConFiltros(String materia, Sede sede, ModalidadTutoria modalidad) {
+        
+        Specification<Tutoria> spec = TutoriaSpecification.conFiltros(materia, sede, modalidad);
+        
+        List<Tutoria> tutoriasEncontradas = tutoriaRepository.findAll(spec);
+        
+        // Si no se encuentran resultados, Trello dice que "el sistema deberá informar al usuario"
+        if (tutoriasEncontradas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron tutorías con los filtros aplicados.");
+        }
+
+        return tutoriasEncontradas.stream()
+                .map(this::toResponse)
+                .toList();
     }
 }
