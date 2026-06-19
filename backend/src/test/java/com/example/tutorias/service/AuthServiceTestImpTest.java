@@ -230,7 +230,7 @@ public class AuthServiceTestImpTest {
         verify(jwtTokenUtil, never()).generateToken(anyString(), anyString());
     }
 
-    @Test
+@Test
     void loginUser_ErrorGenerandoToken_DeberiaLanzarExcepcion() {
         LoginRequestDTO loginDto = new LoginRequestDTO();
         loginDto.setEmail("charly@comunidad.unnoba.edu.ar");
@@ -239,33 +239,22 @@ public class AuthServiceTestImpTest {
         Authentication authenticationMock = mock(Authentication.class);
         GrantedAuthority authorityMock = mock(GrantedAuthority.class);
         
-        //Acá simulamos que el usuario se autentica correctamente pero que ocurre un error al generar el token (por ejemplo, un problema con la clave secreta)
         when(authorityMock.getAuthority()).thenReturn("ROLE_ALUMNO");
         doReturn(List.of(authorityMock)).when(authenticationMock).getAuthorities();
 
-        // Simulamos autenticación exitosa
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authenticationMock);
 
-        //acá lo rompemos
-        when(jwtTokenUtil.generateToken(anyString(), anyString()))
-            .thenThrow(new RuntimeException("Error generando token"));
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authenticationMock);
-
-        // Mock del usuario encontrado en la base de datos
         Alumno usuarioEncontrado = new Alumno();
         usuarioEncontrado.setId(1L);
         usuarioEncontrado.setNombre("Charly");
-        usuarioEncontrado.setApellido("García");
-        usuarioEncontrado.setEmail("charly@comunidad.unnoba.edu.ar");
         usuarioEncontrado.setRole(Role.ALUMNO);
         when(personaRepository.findByEmail("charly@comunidad.unnoba.edu.ar"))
             .thenReturn(Optional.of(usuarioEncontrado));
 
-        //acá lo rompemos
-        when(jwtTokenUtil.generateToken(anyString(), anyString()))
-            .thenThrow(new RuntimeException("Error generando token"));
+        // usamos doThrow para simular que el método generateToken lanza una excepción
+        doThrow(new RuntimeException("Error generando token"))
+            .when(jwtTokenUtil).generateToken(anyString(), anyString());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             authServiceImp.loginUser(loginDto);
