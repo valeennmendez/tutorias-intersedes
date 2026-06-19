@@ -6,13 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 @Repository
-public interface TutoriaRepository extends JpaRepository<Tutoria, Long> {
+public interface TutoriaRepository extends JpaRepository<Tutoria, Long>, JpaSpecificationExecutor<Tutoria> {
 
     List<Tutoria> findByAlumnosId(Long alumnoId);
 

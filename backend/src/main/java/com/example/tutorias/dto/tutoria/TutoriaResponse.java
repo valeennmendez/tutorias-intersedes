@@ -2,6 +2,7 @@ package com.example.tutorias.dto.tutoria;
 
 import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutoria;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class TutoriaResponse {
     private Long materiaId;
     private String materiaNombre;
     private long cantidadInscriptos;
+    private Sede sede;
 
     public static TutoriaResponse from(Tutoria tutoria, long cantidadInscriptos) {
         return TutoriaResponse.builder()
@@ -47,6 +49,7 @@ public class TutoriaResponse {
                 .materiaId(tutoria.getMateria() != null ? tutoria.getMateria().getId() : null)
                 .materiaNombre(tutoria.getMateria() != null ? tutoria.getMateria().getNombre() : null)
                 .cantidadInscriptos(cantidadInscriptos)
+                .sede(tutoria.getSede() != null ? tutoria.getSede() : null)
                 .build();
     }
 }
