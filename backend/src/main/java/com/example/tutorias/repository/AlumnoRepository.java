@@ -8,5 +8,7 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long> {
 
     boolean existsByDni(String dni);
 
+    boolean existsByEmail(String email);
+
 }
 
