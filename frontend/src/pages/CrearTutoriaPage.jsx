@@ -56,7 +56,7 @@ function CrearTutoriaPage() {
 		if (dataForm.linkDrive) {
 			toast(
 				"Atención: la plataforma no se hace responsable del contenido almacenado en la carpeta compartida. Asegúrate de respetar los derechos de autor y de tener permiso para compartir cualquier material.",
-				{ icon: "⚠️" }
+				{ icon: "⚠️" },
 			);
 		}
 
@@ -248,7 +248,9 @@ function CrearTutoriaPage() {
 								onChange={(e) => setDataForm({ ...dataForm, linkDrive: e.target.value })}
 							/>
 							<p className="text-sm text-slate-500 mt-1">
-								La plataforma no se responsabiliza por el contenido ni por los derechos de autor del material almacenado en la carpeta compartida. Usa este enlace solo si tienes permiso para compartir los archivos y los contenidos cumplen con la normativa intelectual.
+								La plataforma no se responsabiliza por el contenido ni por los derechos de autor del material almacenado en la
+								carpeta compartida. Usa este enlace solo si tienes permiso para compartir los archivos y los contenidos cumplen con
+								la normativa intelectual.
 							</p>
 						</div>
 						<div>
