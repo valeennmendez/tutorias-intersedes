@@ -4,14 +4,18 @@ import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutoria;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TutoriaResponse {
     private Long id;
     private String nombre;
@@ -22,6 +26,7 @@ public class TutoriaResponse {
     private Integer cupo;
     private String ubicacion;
     private String linkVirtual;
+    private String linkDrive;
     private ModalidadTutoria modalidad;
     private EstadoTutoria estado;
     private Long tutorId;
@@ -42,6 +47,7 @@ public class TutoriaResponse {
                 .cupo(tutoria.getCupo())
                 .ubicacion(tutoria.getUbicacion())
                 .linkVirtual(tutoria.getLinkVirtual())
+                .linkDrive(tutoria.getLinkDrive())
                 .modalidad(tutoria.getModalidad())
                 .estado(tutoria.getEstado())
                 .tutorId(tutoria.getTutor() != null ? tutoria.getTutor().getId() : null)
