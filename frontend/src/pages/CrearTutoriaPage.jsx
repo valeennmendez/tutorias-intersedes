@@ -1,4 +1,4 @@
-import { Book, Calendar, MapPin, PenBoxIcon, Users2Icon, Video, VideoIcon } from "lucide-react";
+import { Book, Calendar, MapPin, PenBoxIcon, School2, Users2Icon, Video, VideoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { materiaStore } from "../store/materias.store";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ function CrearTutoriaPage() {
 	const materiasTutor = materiaStore((state) => state.materiasTutor);
 	const [seleccion, setSeleccion] = useState(null);
 	const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
+	const [sedeSeleccionada, setSedeSeleccionada] = useState("");
 	const [ubiOrLink, setUbiOrLink] = useState("");
 	const [dataForm, setDataForm] = useState({
 		nombre: "",
@@ -18,6 +19,7 @@ function CrearTutoriaPage() {
 		horaInicio: "",
 		horaFin: "",
 		modalidad: "",
+		sede: "",
 		ubicacion: "",
 		linkVirtual: "",
 		cupo: null,
@@ -55,8 +57,8 @@ function CrearTutoriaPage() {
 			linkVirtual: seleccion === "V" ? ubiOrLink : "",
 		};
 
+		console.log("payload: ", payload);
 		tutoriaStore.getState().crearTutoria(payload);
-
 	};
 
 	return (
@@ -90,6 +92,25 @@ function CrearTutoriaPage() {
 												{mat.nombre}
 											</option>
 										))}
+									</select>
+								</div>
+							</div>
+							<div className="flex flex-col relative mt-3 gap-1">
+								<span className="font-semibold text-slate-800 text-md">Sede</span>
+								<div className="border px-2 rounded-md shadow-sm border-slate-300 w-100">
+									<School2 className="absolute bottom-2 left-2.5 size-5 text-slate-500" />
+									<select
+										value={sedeSeleccionada}
+										onChange={(event) => {
+											(setSedeSeleccionada(event.target.value), setDataForm({ ...dataForm, sede: event.target.value }));
+										}}
+										className="font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
+									>
+										<option value="" disabled>
+											Selecciona la sede correspondiente
+										</option>
+										<option value="JUNIN">JUNIN</option>
+										<option value="PERGAMINO">PERGAMINO</option>
 									</select>
 								</div>
 							</div>
