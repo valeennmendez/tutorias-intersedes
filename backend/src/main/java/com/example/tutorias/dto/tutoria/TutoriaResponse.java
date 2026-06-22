@@ -4,14 +4,18 @@ import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutoria;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TutoriaResponse {
     private Long id;
     private String nombre;
