@@ -33,6 +33,8 @@ function CrearTutoriaPage() {
 		fetchMaterias();
 	}, []);
 
+	const today = new Date().toISOString().split("T")[0];
+
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		if (!materiaSeleccionada) {
@@ -44,6 +46,12 @@ function CrearTutoriaPage() {
 			toast.error("Debes seleccionar una modalidad.");
 			return;
 		}
+
+		if (!dataForm.fecha || dataForm.fecha < today) {
+			toast.error("La fecha debe ser hoy o una fecha futura.");
+			return;
+		}
+
 		const storedUser = localStorage.getItem("user");
 		const user = storedUser ? JSON.parse(storedUser) : null;
 
@@ -153,6 +161,7 @@ function CrearTutoriaPage() {
 									<Calendar className="absolute bottom-2 left-2.5 size-5 text-slate-500" />
 									<input
 										type="date"
+										min={today}
 										className=" font-medium border-slate-300 rounded-md w-full h-8.5 pl-8"
 										onChange={(e) => setDataForm({ ...dataForm, fecha: e.target.value })}
 										required
