@@ -43,6 +43,7 @@ public class CrearTutoriaRequest {
 
     private String ubicacion;
     private String linkVirtual;
+    private String linkDrive;
 
     @NotNull(message = "La sede no puede ser nula")
     private Sede sede;

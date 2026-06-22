@@ -22,6 +22,7 @@ public class TutoriaResponse {
     private Integer cupo;
     private String ubicacion;
     private String linkVirtual;
+    private String linkDrive;
     private ModalidadTutoria modalidad;
     private EstadoTutoria estado;
     private Long tutorId;
@@ -42,6 +43,7 @@ public class TutoriaResponse {
                 .cupo(tutoria.getCupo())
                 .ubicacion(tutoria.getUbicacion())
                 .linkVirtual(tutoria.getLinkVirtual())
+                .linkDrive(tutoria.getLinkDrive())
                 .modalidad(tutoria.getModalidad())
                 .estado(tutoria.getEstado())
                 .tutorId(tutoria.getTutor() != null ? tutoria.getTutor().getId() : null)

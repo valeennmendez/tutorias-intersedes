@@ -33,6 +33,7 @@ public class Tutoria {
     private Integer cupo;
     private String ubicacion;
     private String linkVirtual;
+    private String linkDrive;
 
     @Enumerated(EnumType.STRING)
     private ModalidadTutoria modalidad;

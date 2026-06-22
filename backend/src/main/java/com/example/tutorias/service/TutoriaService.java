@@ -77,6 +77,7 @@ public class TutoriaService {
         tutoria.setModalidad(request.getModalidad());
         tutoria.setUbicacion(request.getUbicacion());
         tutoria.setLinkVirtual(request.getLinkVirtual());
+        tutoria.setLinkDrive(request.getLinkDrive());
         tutoria.setCupo(request.getCupo());
         tutoria.setEstado(EstadoTutoria.ACTIVA);
         tutoria.setTutor(tutor);
