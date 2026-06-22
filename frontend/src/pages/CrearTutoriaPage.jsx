@@ -22,6 +22,7 @@ function CrearTutoriaPage() {
 		sede: "",
 		ubicacion: "",
 		linkVirtual: "",
+		linkDrive: "",
 		cupo: null,
 	});
 
@@ -52,6 +53,13 @@ function CrearTutoriaPage() {
 			return;
 		}
 
+		if (dataForm.linkDrive) {
+			toast(
+				"Atención: la plataforma no se hace responsable del contenido almacenado en la carpeta compartida. Asegúrate de respetar los derechos de autor y de tener permiso para compartir cualquier material.",
+				{ icon: "⚠️" }
+			);
+		}
+
 		const storedUser = localStorage.getItem("user");
 		const user = storedUser ? JSON.parse(storedUser) : null;
 
@@ -63,6 +71,7 @@ function CrearTutoriaPage() {
 			modalidad,
 			ubicacion: seleccion === "P" ? ubiOrLink : "",
 			linkVirtual: seleccion === "V" ? ubiOrLink : "",
+			linkDrive: dataForm.linkDrive,
 		};
 
 		console.log("payload: ", payload);
@@ -228,6 +237,19 @@ function CrearTutoriaPage() {
 									required
 								/>
 							</div>
+						</div>
+						<div className="flex flex-col relative mt-4 gap-1">
+							<span className="font-semibold text-slate-800 text-md">Carpeta compartida de Drive (opcional)</span>
+							<input
+								type="url"
+								className="border shadow-sm font-medium border-slate-300 rounded-md w-full h-8.5 pl-4"
+								placeholder="https://drive.google.com/drive/folders/..."
+								value={dataForm.linkDrive}
+								onChange={(e) => setDataForm({ ...dataForm, linkDrive: e.target.value })}
+							/>
+							<p className="text-sm text-slate-500 mt-1">
+								La plataforma no se responsabiliza por el contenido ni por los derechos de autor del material almacenado en la carpeta compartida. Usa este enlace solo si tienes permiso para compartir los archivos y los contenidos cumplen con la normativa intelectual.
+							</p>
 						</div>
 						<div>
 							<button type="submit" className="bg-[#008BBA] text-white w-30 h-10 rounded-lg font-medium cursor-pointer mt-5">
