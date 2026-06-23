@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { axiosInstance } from "@/utils/axios";
+import { useAuthStore } from "@/store/auth.store";
+import toast from "react-hot-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,119 +10,146 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { GraduationCap, BookOpen, Clock, CheckCircle, XCircle, Loader2, AlertCircle, Award, Users, Send } from "lucide-react";
+import { GraduationCap, BookOpen, Clock, CheckCircle, XCircle, Loader2, AlertCircle, Award, Users, Send, Upload, FileText, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-const HARDCODED_PROFILE = {
-	id: "user-123",
-	nombre: "Juan",
-	apellido: "Pérez",
-	email: "juan@example.com",
-	role: "alumno",
-};
-
-const HARDCODED_MATERIAS = [
-	{ id: "mat-1", nombre: "Cálculo I", codigo: "MAT-101", anio: 1 },
-	{ id: "mat-2", nombre: "Álgebra Lineal", codigo: "MAT-102", anio: 1 },
-	{ id: "mat-3", nombre: "Física I", codigo: "FIS-101", anio: 1 },
-	{ id: "mat-4", nombre: "Programación II", codigo: "INF-102", anio: 2 },
-	{ id: "mat-5", nombre: "Bases de Datos", codigo: "INF-201", anio: 2 },
-];
-
-const HARDCODED_APPLICATIONS = [
-	{
-		id: "app-1",
-		user_id: "user-123",
-		materia_id: "mat-1",
-		justificacion: "Me desempeñé muy bien en Cálculo I y me gustaría ayudar a otros estudiantes a entender los conceptos.",
-		nota_aprobacion: 8.5,
-		status: "pendiente",
-		admin_comentario: null,
-		created_at: "2026-05-15T14:30:00.000Z",
-		materia: { nombre: "Cálculo I", codigo: "MAT-101" },
-	},
-	{
-		id: "app-2",
-		user_id: "user-123",
-		materia_id: "mat-2",
-		justificacion: "El álgebra es mi fuerte, quiero compartir métodos de resolución que me ayudaron a aprobar.",
-		nota_aprobacion: 9,
-		status: "aprobado",
-		admin_comentario: "Excelente perfil, bienvenido como tutor.",
-		created_at: "2026-04-02T10:15:00.000Z",
-		materia: { nombre: "Álgebra Lineal", codigo: "MAT-102" },
-	},
-	{
-		id: "app-3",
-		user_id: "user-123",
-		materia_id: "mat-3",
-		justificacion: "Tengo experiencia dando clases de apoyo en Física y me siento preparado para tutorías.",
-		nota_aprobacion: 6,
-		status: "rechazado",
-		admin_comentario: "La nota no alcanza el mínimo requerido para esta materia.",
-		created_at: "2026-03-20T09:00:00.000Z",
-		materia: { nombre: "Física I", codigo: "FIS-101" },
-	},
-];
-
 export function PostulacionTutorClient() {
-	const materias = HARDCODED_MATERIAS;
-	const applications = HARDCODED_APPLICATIONS;
-	const userId = HARDCODED_PROFILE.id;
-
+	const { user } = useAuthStore();
+	const [materias, setMaterias] = useState([]);
+	const [applications, setApplications] = useState([]);
+	const [loadingMaterias, setLoadingMaterias] = useState(true);
+	const [loadingApps, setLoadingApps] = useState(true);
 	const [loading, setLoading] = useState(false);
+	const [archivoPdf, setArchivoPdf] = useState(null);
+	const [pdfError, setPdfError] = useState("");
+	const fileInputRef = useRef(null);
 	const [formData, setFormData] = useState({
 		materia_id: "",
 		justificacion: "",
 		nota_aprobacion: "",
+		sede_preferencia: "",
+		modalidad: "",
 	});
 
-	const appliedMateriaIds = new Set(applications.map((a) => a.materia_id));
-	const availableMaterias = materias.filter((m) => !appliedMateriaIds.has(m.id));
+	useEffect(() => {
+		fetchMaterias();
+		fetchApplications();
+	}, []);
+
+	const fetchMaterias = async () => {
+		try {
+			const res = await axiosInstance.get("/materias");
+			setMaterias(res.data);
+		} catch (error) {
+			console.error("Error al obtener materias:", error);
+		} finally {
+			setLoadingMaterias(false);
+		}
+	};
+
+	const fetchApplications = async () => {
+		try {
+			const res = await axiosInstance.get("/postulaciones/mis-postulaciones");
+			setApplications(res.data);
+		} catch (error) {
+			console.error("Error al obtener postulaciones:", error);
+		} finally {
+			setLoadingApps(false);
+		}
+	};
+
+	const appliedMateriaIds = new Set(applications.map((a) => String(a.materia_id)));
+	const availableMaterias = materias.filter((m) => !appliedMateriaIds.has(String(m.id)));
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (!formData.materia_id) {
-			alert("Debes seleccionar una materia");
+			toast.error("Debes seleccionar una materia");
 			return;
 		}
 
 		if (!formData.justificacion.trim()) {
-			alert("Debes escribir una justificación");
+			toast.error("Debes escribir una justificación");
 			return;
 		}
 
 		if (formData.justificacion.length < 50) {
-			alert("La justificación debe tener al menos 50 caracteres");
+			toast.error("La justificación debe tener al menos 50 caracteres");
 			return;
 		}
 
 		const nota = parseFloat(formData.nota_aprobacion);
 		if (isNaN(nota) || nota < 4 || nota > 10) {
-			alert("La nota debe estar entre 4 y 10");
+			toast.error("La nota debe estar entre 4 y 10");
+			return;
+		}
+
+		if (!formData.sede_preferencia) {
+			toast.error("Debes seleccionar una sede preferida");
+			return;
+		}
+
+		if (!formData.modalidad) {
+			toast.error("Debes seleccionar una modalidad");
+			return;
+		}
+
+		if (!archivoPdf) {
+			toast.error("Debes adjuntar tu analítico en formato PDF");
+			return;
+		}
+
+		if (archivoPdf.type !== "application/pdf") {
+			toast.error("El archivo debe ser un PDF");
 			return;
 		}
 
 		setLoading(true);
+		setPdfError("");
 
 		try {
-			console.log("Postulación enviada (mock):", {
-				user_id: userId,
-				materia_id: formData.materia_id,
-				justificacion: formData.justificacion.trim(),
-				nota_aprobacion: nota,
-				status: "pendiente",
-			});
+			const formPayload = new FormData();
+			formPayload.append("materia_id", formData.materia_id);
+			formPayload.append("nota_aprobacion", nota);
+			formPayload.append("justificacion", formData.justificacion.trim());
+			formPayload.append("sede_preferencia", formData.sede_preferencia);
+			formPayload.append("modalidad", formData.modalidad);
+			formPayload.append("archivo_pdf", archivoPdf);
 
-			alert("Postulación enviada correctamente");
-			setFormData({ materia_id: "", justificacion: "", nota_aprobacion: "" });
+			await axiosInstance.post("/postulaciones", formPayload);
+
+			toast.success("Postulación enviada correctamente");
+			setFormData({
+				materia_id: "",
+				justificacion: "",
+				nota_aprobacion: "",
+				sede_preferencia: "",
+				modalidad: "",
+			});
+			setArchivoPdf(null);
+			if (fileInputRef.current) fileInputRef.current.value = "";
+			fetchApplications();
 		} catch (error) {
 			console.error("Error al enviar la postulación:", error);
-			alert("Error al enviar la postulación");
+			const msg = error.response?.data || "Error al enviar la postulación";
+			toast.error(typeof msg === "string" ? msg : JSON.stringify(msg));
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleDelete = async (id) => {
+		if (!confirm("¿Estás seguro de que deseas cancelar esta postulación?")) return;
+		try {
+			await axiosInstance.delete(`/postulaciones/${id}`);
+			toast.success("Postulación cancelada");
+			fetchApplications();
+		} catch (error) {
+			console.error("Error al eliminar postulación:", error);
+			const msg = error.response?.data || "Error al eliminar la postulación";
+			toast.error(typeof msg === "string" ? msg : JSON.stringify(msg));
 		}
 	};
 
@@ -132,6 +162,7 @@ export function PostulacionTutorClient() {
 						Pendiente
 					</Badge>
 				);
+			case "aprobada":
 			case "aprobado":
 				return (
 					<Badge className="bg-green-600 gap-1 text-white hover:bg-green-700">
@@ -139,6 +170,7 @@ export function PostulacionTutorClient() {
 						Aprobado
 					</Badge>
 				);
+			case "rechazada":
 			case "rechazado":
 				return (
 					<Badge variant="destructive" className="gap-1">
@@ -210,7 +242,11 @@ export function PostulacionTutorClient() {
 							<CardDescription>Completa el formulario para postularte como tutor</CardDescription>
 						</CardHeader>
 						<CardContent>
-							{availableMaterias.length === 0 ? (
+							{loadingMaterias ? (
+								<div className="flex items-center justify-center py-8">
+									<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+								</div>
+							) : availableMaterias.length === 0 ? (
 								<Alert>
 									<AlertCircle className="h-4 w-4" />
 									<AlertDescription>
@@ -228,8 +264,8 @@ export function PostulacionTutorClient() {
 											</SelectTrigger>
 											<SelectContent>
 												{availableMaterias.map((materia) => (
-													<SelectItem key={materia.id} value={materia.id}>
-														{materia.nombre} ({materia.anio}° año)
+													<SelectItem key={materia.id} value={String(materia.id)}>
+														{materia.nombre}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -266,10 +302,98 @@ export function PostulacionTutorClient() {
 										</p>
 									</div>
 
+									<div className="space-y-2">
+										<Label htmlFor="sede">Sede Preferida</Label>
+										<Select value={formData.sede_preferencia} onValueChange={(value) => setFormData({ ...formData, sede_preferencia: value })}>
+											<SelectTrigger>
+												<SelectValue placeholder="Selecciona una sede" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="Pergamino">Pergamino</SelectItem>
+												<SelectItem value="Junín">Junín</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="modalidad">Modalidad Preferida</Label>
+										<Select value={formData.modalidad} onValueChange={(value) => setFormData({ ...formData, modalidad: value })}>
+											<SelectTrigger>
+												<SelectValue placeholder="Selecciona una modalidad" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="PRESENCIAL">Presencial</SelectItem>
+												<SelectItem value="VIRTUAL">Virtual</SelectItem>
+												<SelectItem value="HIBRIDA">Híbrida</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+
+									{/* PDF Upload */}
+									<div className="space-y-2">
+										<Label>Analítico (PDF)</Label>
+										<div
+											className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-sky-300 bg-sky-50/50 p-6 transition-colors hover:border-sky-400 hover:bg-sky-50 cursor-pointer"
+											onClick={() => fileInputRef.current?.click()}
+										>
+											<Input
+												id="archivo"
+												type="file"
+												ref={fileInputRef}
+												accept=".pdf,application/pdf"
+												onChange={(e) => {
+													const file = e.target.files[0];
+													if (file) {
+														if (file.type !== "application/pdf") {
+															setPdfError("El archivo debe ser un PDF");
+															setArchivoPdf(null);
+														} else {
+															setArchivoPdf(file);
+															setPdfError("");
+														}
+													}
+												}}
+												className="hidden"
+											/>
+											{archivoPdf ? (
+												<div className="flex items-center gap-3 w-full" onClick={(e) => e.stopPropagation()}>
+													<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-100 shrink-0">
+														<FileText className="h-6 w-6 text-sky-600" />
+													</div>
+													<div className="flex-1 min-w-0">
+														<p className="text-sm font-medium text-sky-700 truncate">{archivoPdf.name}</p>
+														<p className="text-xs text-muted-foreground">{(archivoPdf.size / 1024).toFixed(1)} KB</p>
+													</div>
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8 shrink-0 text-muted-foreground hover:text-red-600"
+														onClick={(e) => {
+															e.stopPropagation();
+															setArchivoPdf(null);
+															setPdfError("");
+															if (fileInputRef.current) fileInputRef.current.value = "";
+														}}
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											) : (
+												<>
+													<Upload className="h-8 w-8 text-sky-400 mb-2" />
+													<p className="text-sm font-medium text-sky-600">Haz clic para seleccionar tu analítico</p>
+													<p className="text-xs text-muted-foreground mt-1">Solo archivos PDF</p>
+												</>
+											)}
+										</div>
+										{pdfError && <p className="text-xs text-red-500">{pdfError}</p>}
+									</div>
+
 									<Button
 										type="submit"
 										className="w-full bg-sky-500 hover:bg-sky-600 text-white"
-										disabled={loading || formData.justificacion.length < 50}
+										disabled={loading || formData.justificacion.length < 50 || !formData.materia_id || !formData.nota_aprobacion || !formData.sede_preferencia || !formData.modalidad || !archivoPdf}
 									>
 										{loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
 										Enviar Postulación
@@ -286,7 +410,11 @@ export function PostulacionTutorClient() {
 							<CardDescription>Historial de tus postulaciones como tutor</CardDescription>
 						</CardHeader>
 						<CardContent>
-							{applications.length > 0 ? (
+							{loadingApps ? (
+								<div className="flex items-center justify-center py-8">
+									<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+								</div>
+							) : applications.length > 0 ? (
 								<div className="space-y-4">
 									{applications.map((application) => (
 										<div key={application.id} className="rounded-lg border p-4 space-y-3">
@@ -295,7 +423,21 @@ export function PostulacionTutorClient() {
 													<h4 className="font-medium">{application.materia?.nombre}</h4>
 													<p className="text-sm text-muted-foreground">Nota: {application.nota_aprobacion}</p>
 												</div>
-												{getStatusBadge(application.status)}
+												<div className="flex items-center gap-2 shrink-0">
+													{getStatusBadge(application.status)}
+													{application.status === "pendiente" && (
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															className="h-7 w-7 text-muted-foreground hover:text-red-600"
+															onClick={() => handleDelete(application.id)}
+															title="Cancelar postulación"
+														>
+															<XCircle className="h-4 w-4" />
+														</Button>
+													)}
+												</div>
 											</div>
 											<p className="text-sm text-muted-foreground line-clamp-2">{application.justificacion}</p>
 											{application.admin_comentario && (
