@@ -215,7 +215,7 @@ class AvisoServiceTest {
         aviso.setTutoria(tutoriaMock);
         aviso.setTutor(tutorMock);
 
-        when(avisoRepository.findByTutoria_Alumnos_EmailAndActivoTrue(emailAlumno))
+        when(avisoRepository.findByTutoria_Inscripciones_Alumno_EmailAndActivoTrue(emailAlumno))
                 .thenReturn(List.of(aviso));
 
     
@@ -223,6 +223,6 @@ class AvisoServiceTest {
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
-        verify(avisoRepository, times(1)).findByTutoria_Alumnos_EmailAndActivoTrue(emailAlumno);
+        verify(avisoRepository, times(1)).findByTutoria_Inscripciones_Alumno_EmailAndActivoTrue(emailAlumno);
     }
 }

@@ -3,11 +3,13 @@ package com.example.tutorias.service;
 import com.example.tutorias.dto.tutoria.CrearTutoriaRequest;
 import com.example.tutorias.dto.tutoria.TutoriaResponse;
 import com.example.tutorias.entity.EstadoTutoria;
+import com.example.tutorias.entity.InscripcionStatus;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
+import com.example.tutorias.repository.InscripcionRepository;
 import com.example.tutorias.repository.MateriaRepository;
 import com.example.tutorias.repository.TutorRepository;
 import com.example.tutorias.repository.TutoriaRepository;
@@ -27,14 +29,17 @@ public class TutoriaService {
     private final TutoriaRepository tutoriaRepository;
     private final TutorRepository tutorRepository;
     private final MateriaRepository materiaRepository;
+    private final InscripcionRepository inscripcionRepository;
 
     public TutoriaService(
             TutoriaRepository tutoriaRepository,
             TutorRepository tutorRepository,
-            MateriaRepository materiaRepository) {
+            MateriaRepository materiaRepository,
+            InscripcionRepository inscripcionRepository) {
         this.tutoriaRepository = tutoriaRepository;
         this.tutorRepository = tutorRepository;
         this.materiaRepository = materiaRepository;
+        this.inscripcionRepository = inscripcionRepository;
     }
 
     @Transactional
@@ -94,9 +99,10 @@ public class TutoriaService {
                 .toList();
     }
 
+    //ahora para traer las tutorías de lalumno, la relación es a través de la entidad Inscripcion, que tiene un estado, y solo queremos traer las tutorías activas
     @Transactional(readOnly = true)
     public List<TutoriaResponse> obtenerTutoriasPorAlumno(Long alumnoId) {
-        return tutoriaRepository.findByAlumnosId(alumnoId).stream()
+        return tutoriaRepository.findByInscripciones_Alumno_IdAndInscripciones_Status(alumnoId, InscripcionStatus.ACTIVA).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -106,14 +112,14 @@ public class TutoriaService {
         if (!tutoriaRepository.existsById(tutoriaId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoria no encontrada");
         }
-
-        return tutoriaRepository.countAlumnosByTutoriaId(tutoriaId);
+        //traemos aquella cant de alumnos que tienen inscripciones activas para la tutoria
+        return inscripcionRepository.countByTutoriaIdAndStatus(tutoriaId, InscripcionStatus.ACTIVA);
     }
 
     private TutoriaResponse toResponse(Tutoria tutoria) {
         long cantidadInscriptos = tutoria.getId() == null
                 ? 0
-                : tutoriaRepository.countAlumnosByTutoriaId(tutoria.getId());
+                : inscripcionRepository.countByTutoriaIdAndStatus(tutoria.getId(), InscripcionStatus.ACTIVA);
 
         return TutoriaResponse.from(tutoria, cantidadInscriptos);
     }

@@ -60,7 +60,7 @@ public class AvisoController {
 
     //Este endpoint es para que un tutor pueda ver todos los avisos que él mismo publicó, misma idea de matcheo por email del token que en el anterior
     @GetMapping("/mis-avisos-enviados")
-    @PreAuthorize("hasAnyAuthority('TUTOR', 'ROLE_TUTOR')")
+    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<List<AvisoResponseDTO>> obtenerAvisosPublicados(Principal principal) {
         String emailTutor = principal.getName();
         List<AvisoResponseDTO> avisos = avisoService.obtenerAvisosPorTutorLogueado(emailTutor);

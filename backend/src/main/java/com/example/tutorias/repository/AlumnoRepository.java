@@ -1,6 +1,9 @@
 package com.example.tutorias.repository;
 
 import  com.example.tutorias.entity.Alumno;
+
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AlumnoRepository extends JpaRepository<Alumno, Long> {
@@ -10,5 +13,6 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long> {
 
     boolean existsByEmail(String email);
 
+    Optional<Alumno> findByEmail(String email);
 }
 

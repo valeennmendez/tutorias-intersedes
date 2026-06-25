@@ -2,6 +2,8 @@ package com.example.tutorias.repository;
 
 import com.example.tutorias.entity.Tutoria;
 import com.example.tutorias.entity.EstadoTutoria;
+import com.example.tutorias.entity.InscripcionStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,10 +17,8 @@ import java.util.List;
 @Repository
 public interface TutoriaRepository extends JpaRepository<Tutoria, Long>, JpaSpecificationExecutor<Tutoria> {
 
-    List<Tutoria> findByAlumnosId(Long alumnoId);
-
-    @Query("select count(a) from Tutoria t join t.alumnos a where t.id = :tutoriaId")
-    long countAlumnosByTutoriaId(@Param("tutoriaId") Long tutoriaId);
+    // nuevo método para obtener tutorías por alumno y estado de inscripción
+    List<Tutoria> findByInscripciones_Alumno_IdAndInscripciones_Status(Long alumnoId, InscripcionStatus status);
 
     boolean existsByTutorIdAndFechaAndEstadoAndHoraInicioBeforeAndHoraFinAfter(
             Long tutorId,
