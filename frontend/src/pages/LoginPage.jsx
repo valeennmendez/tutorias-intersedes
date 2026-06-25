@@ -17,7 +17,7 @@ function LoginPage() {
 		const status = await login(dataLogin);
 		if (status === 200) {
 			console.log("status: ", status);
-			navigate("/");
+			navigate("/dashboard");
 		}
 	};
 
