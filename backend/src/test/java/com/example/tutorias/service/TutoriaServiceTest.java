@@ -8,6 +8,7 @@ import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
+import com.example.tutorias.repository.InscripcionRepository;
 import com.example.tutorias.repository.MateriaRepository;
 import com.example.tutorias.repository.TutorRepository;
 import com.example.tutorias.repository.TutoriaRepository;
@@ -50,9 +51,12 @@ class TutoriaServiceTest {
 
     private TutoriaService tutoriaService;
 
+    @Mock
+    private InscripcionRepository inscripcionRepository;
+
     @BeforeEach
     void setUp() {
-        tutoriaService = new TutoriaService(tutoriaRepository, tutorRepository, materiaRepository);
+        tutoriaService = new TutoriaService(tutoriaRepository, tutorRepository, materiaRepository, inscripcionRepository);
     }
 
     @Test
@@ -76,7 +80,7 @@ class TutoriaServiceTest {
             tutoria.setSede(Sede.PERGAMINO);
             return tutoria;
         });
-        when(tutoriaRepository.countAlumnosByTutoriaId(10L)).thenReturn(0L);
+        when(inscripcionRepository.countByTutoriaIdAndStatus(anyLong(), any())).thenReturn(0L);
 
         TutoriaResponse response = tutoriaService.crearTutoria(request);
 
@@ -167,7 +171,7 @@ class TutoriaServiceTest {
         // Simulamos que el repositorio encuentra la tutoría
         when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoriaFalsa));
         // Simulamos el conteo de inscriptos para que el mapeo al DTO no explote
-        when(tutoriaRepository.countAlumnosByTutoriaId(1L)).thenReturn(2L);
+        when(inscripcionRepository.countByTutoriaIdAndStatus(anyLong(), any())).thenReturn(2L);
 
         // 2. Act (Ejecutar el método)
         TutoriaResponse resultado = tutoriaService.obtenerTutoriaPorId(1L);
@@ -196,7 +200,7 @@ class TutoriaServiceTest {
         assertEquals("Tutoría no encontrada", exception.getReason());
         
         // Verificamos que al fallar, nunca intentó buscar la cantidad de alumnos inscriptos
-        verify(tutoriaRepository, never()).countAlumnosByTutoriaId(anyLong());
+        verify(inscripcionRepository, never()).countByTutoriaIdAndStatus(anyLong(), any());
     }
     
     @Test
@@ -216,7 +220,7 @@ class TutoriaServiceTest {
         when(tutoriaRepository.findAll(any(Specification.class))).thenReturn(List.of(tutoriaFalsa));
         
         // Simulamos el conteo de inscriptos para que no falle el "toResponse"
-        when(tutoriaRepository.countAlumnosByTutoriaId(1L)).thenReturn(5L);
+        when(inscripcionRepository.countByTutoriaIdAndStatus(anyLong(), any())).thenReturn(5L);;
 
         // 2. Act (Ejecutar el método)
         List<TutoriaResponse> resultado = tutoriaService.buscarTutoriasConFiltros("álgebra", Sede.PERGAMINO, ModalidadTutoria.PRESENCIAL);
@@ -236,7 +240,7 @@ class TutoriaServiceTest {
         
         // Si le pasamos nulls, debería armar una spec vacía y traer todo lo que haya
         when(tutoriaRepository.findAll(any(Specification.class))).thenReturn(List.of(tutoria1, tutoria2));
-        when(tutoriaRepository.countAlumnosByTutoriaId(anyLong())).thenReturn(0L);
+        when(inscripcionRepository.countByTutoriaIdAndStatus(anyLong(), any())).thenReturn(0L);
 
         List<TutoriaResponse> resultado = tutoriaService.buscarTutoriasConFiltros(null, null, null);
 

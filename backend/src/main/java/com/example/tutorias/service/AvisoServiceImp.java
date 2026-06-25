@@ -98,7 +98,7 @@ public class AvisoServiceImp implements AvisoService {
         if (!alumnoRepository.existsByEmail(emailAlumno)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado");
         }
-        List<Aviso> avisos = avisoRepository.findByTutoria_Alumnos_EmailAndActivoTrue(emailAlumno);
+        List<Aviso> avisos = avisoRepository.findByTutoria_Inscripciones_Alumno_EmailAndActivoTrue(emailAlumno);
         return avisos.stream().map(this::toResponse).toList();
     }
 

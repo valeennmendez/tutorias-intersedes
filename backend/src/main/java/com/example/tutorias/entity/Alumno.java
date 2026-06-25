@@ -62,7 +62,4 @@ public class Alumno extends Persona {
     @OneToMany(mappedBy = "alumno")
     private List<Feedback> feedbacksBrindados;
 
-    // Un alumno puede estar inscrito en múltiples tutorías y una tutoría puede tener múltiples alumnos, por lo que se establece una relación ManyToMany
-    @ManyToMany(mappedBy = "alumnos")
-    private List<Tutoria> tutorias;
 }
