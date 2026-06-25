@@ -95,7 +95,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
 
-                .requestMatchers("/inscripciones/**").hasAnyRole("ALUMNO", "ADMIN")
+                .requestMatchers("/inscripciones/**").authenticated()
                 .requestMatchers("/feedback/**").hasAnyRole("ALUMNO", "ADMIN")
                 .requestMatchers("/avisos/**").hasAnyRole("TUTOR", "ADMIN", "ALUMNO")
                 .requestMatchers("/certificados/**").hasAnyRole("TUTOR", "ADMIN")

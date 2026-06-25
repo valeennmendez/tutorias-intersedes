@@ -13,8 +13,8 @@ public interface AvisoRepository extends JpaRepository<Aviso, Long> {
 
     List<Aviso> findByTutor_EmailAndActivoTrue(String tutorEmail);
 
-    // Este método usa los joins automáticos de JPA para cruzar Aviso -> Tutoria -> Alumno
-    List<Aviso> findByTutoria_Alumnos_EmailAndActivoTrue(String alumnoEmail);
+    
+    List<Aviso> findByTutoria_Inscripciones_Alumno_EmailAndActivoTrue(String emailAlumno);
 
 }
 

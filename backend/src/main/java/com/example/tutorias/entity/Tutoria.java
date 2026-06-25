@@ -1,5 +1,6 @@
 package com.example.tutorias.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -52,11 +53,6 @@ public class Tutoria {
     @JoinColumn(name = "materia_id")
     private Materia materia;
 
-    @ManyToMany
-    @JoinTable(
-        name = "tutoria_alumno",
-        joinColumns = @JoinColumn(name = "tutoria_id"),
-        inverseJoinColumns = @JoinColumn(name = "alumno_id")
-    )
-    private List<Alumno> alumnos;
+    @ManyToMany(mappedBy = "tutoria", cascade = CascadeType.ALL)
+    private List<Inscripcion> inscripciones;
 }
