@@ -49,7 +49,4 @@ public class Tutor extends Persona {
 
     @OneToMany(mappedBy = "tutor")
     private List<Tutoria> tutoriasCreadas;
-
-    @OneToMany(mappedBy = "tutor")
-    private List<Feedback> feedbacksRecibidos;
 }

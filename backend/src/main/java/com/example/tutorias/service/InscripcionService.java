@@ -26,10 +26,10 @@ public class InscripcionService {
 
     @Transactional
     public InscripcionResponseDTO inscribirAlumno(Long tutoriaId, String emailAlumno) {
-        // 1. Validar Feedback Pendiente (RF-08)
-        //if (inscripcionRepository.tieneFeedbackPendiente(emailAlumno)) {
-        //    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No podés inscribirte: tenés encuestas de feedback pendientes.");
-        //}
+        //Validar Feedback Pendiente (RF-08)
+        if (inscripcionRepository.tieneFeedbackPendiente(emailAlumno)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No podés inscribirte: tenés encuestas de feedback pendientes.");
+        }
 
         Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoría no encontrada."));
