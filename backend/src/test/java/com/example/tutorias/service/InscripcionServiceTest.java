@@ -72,7 +72,7 @@ class InscripcionServiceTest {
         inscripcionGuardada.setStatus(InscripcionStatus.ACTIVA);
         
         when(inscripcionRepository.save(any(Inscripcion.class))).thenReturn(inscripcionGuardada);
-
+        when(inscripcionRepository.tieneFeedbackPendiente(anyString())).thenReturn(false);
         // Act
         InscripcionResponseDTO response = inscripcionService.inscribirAlumno(1L, EMAIL_ALUMNO);
 
@@ -89,6 +89,7 @@ class InscripcionServiceTest {
         when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoriaMock));
         when(alumnoRepository.findByEmail(EMAIL_ALUMNO)).thenReturn(Optional.of(alumnoMock));
         when(inscripcionRepository.findByTutoriaIdAndAlumnoEmail(1L, EMAIL_ALUMNO)).thenReturn(Optional.empty());
+        when(inscripcionRepository.tieneFeedbackPendiente(anyString())).thenReturn(false);
         
         // Simulamos que ya hay 5 inscriptos (cupo lleno)
         when(inscripcionRepository.countByTutoriaIdAndStatus(1L, InscripcionStatus.ACTIVA)).thenReturn(5L);
