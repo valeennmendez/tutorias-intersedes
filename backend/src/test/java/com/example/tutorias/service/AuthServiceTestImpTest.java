@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.tutorias.dto.auth.LoginRequestDTO;
+import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
 import com.example.tutorias.dto.auth.UsuarioResponseDTO;
 import com.example.tutorias.entity.Alumno;
@@ -165,13 +166,28 @@ public class AuthServiceTestImpTest {
         // Cuando pida generar el token, devolvemos uno de prueba
         when(jwtTokenUtil.generateToken("charly@comunidad.unnoba.edu.ar", "ROLE_ALUMNO"))
             .thenReturn("eyJhbGciOiJIUzI1NiJ9.token.falso");
+        
+        // Mock del usuario encontrado en la base de datos
+        Alumno usuarioEncontrado = new Alumno();
+        usuarioEncontrado.setId(1L);
+        usuarioEncontrado.setNombre("Charly");
+        usuarioEncontrado.setApellido("García");
+        usuarioEncontrado.setEmail("charly@comunidad.unnoba.edu.ar");
+        usuarioEncontrado.setRole(Role.ALUMNO);
+        when(personaRepository.findByEmail("charly@comunidad.unnoba.edu.ar"))
+            .thenReturn(Optional.of(usuarioEncontrado));
 
         // 2. ACT
-        String tokenGenerado = authServiceImp.loginUser(loginDto);
+        LoginResponseDTO response = authServiceImp.loginUser(loginDto);
 
         // 3. ASSERT
-        assertNotNull(tokenGenerado);
-        assertEquals("eyJhbGciOiJIUzI1NiJ9.token.falso", tokenGenerado);
+        assertNotNull(response);
+        assertNotNull(response.getToken());
+        assertEquals("eyJhbGciOiJIUzI1NiJ9.token.falso", response.getToken());
+        assertNotNull(response.getUsuario());
+        assertEquals("Charly", response.getUsuario().getNombre());
+        assertEquals("García", response.getUsuario().getApellido());
+        assertEquals("charly@comunidad.unnoba.edu.ar", response.getUsuario().getEmail());
         
         // Verificamos que efectivamente se llamó al manager para autenticar
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -214,7 +230,7 @@ public class AuthServiceTestImpTest {
         verify(jwtTokenUtil, never()).generateToken(anyString(), anyString());
     }
 
-    @Test
+@Test
     void loginUser_ErrorGenerandoToken_DeberiaLanzarExcepcion() {
         LoginRequestDTO loginDto = new LoginRequestDTO();
         loginDto.setEmail("charly@comunidad.unnoba.edu.ar");
@@ -223,17 +239,22 @@ public class AuthServiceTestImpTest {
         Authentication authenticationMock = mock(Authentication.class);
         GrantedAuthority authorityMock = mock(GrantedAuthority.class);
         
-        //Acá simulamos que el usuario se autentica correctamente pero que ocurre un error al generar el token (por ejemplo, un problema con la clave secreta)
         when(authorityMock.getAuthority()).thenReturn("ROLE_ALUMNO");
         doReturn(List.of(authorityMock)).when(authenticationMock).getAuthorities();
 
-        // Simulamos autenticación exitosa
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authenticationMock);
 
-        //acá lo rompemos
-        when(jwtTokenUtil.generateToken(anyString(), anyString()))
-            .thenThrow(new RuntimeException("Error generando token"));
+        Alumno usuarioEncontrado = new Alumno();
+        usuarioEncontrado.setId(1L);
+        usuarioEncontrado.setNombre("Charly");
+        usuarioEncontrado.setRole(Role.ALUMNO);
+        when(personaRepository.findByEmail("charly@comunidad.unnoba.edu.ar"))
+            .thenReturn(Optional.of(usuarioEncontrado));
+
+        // usamos doThrow para simular que el método generateToken lanza una excepción
+        doThrow(new RuntimeException("Error generando token"))
+            .when(jwtTokenUtil).generateToken(anyString(), anyString());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             authServiceImp.loginUser(loginDto);

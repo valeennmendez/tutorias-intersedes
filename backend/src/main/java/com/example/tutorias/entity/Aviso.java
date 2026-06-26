@@ -1,42 +1,47 @@
 package com.example.tutorias.entity;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-
 @Entity
 public class Aviso {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String titulo;
-	private String cuerpo;
-    
 
-    //por si el aviso es a todo el instituto
-	private boolean institucional;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String contenido; // cambiado de cuerpo a contenido, para que coincida más con el esquema de la BD
 
-	private LocalDateTime fechaCreacion = LocalDateTime.now();
-    
-    @ManyToOne
-	@JoinColumn(name = "usuario_id")
-	private Persona creador;
 
-    @ManyToOne
-    @JoinColumn(name = "tutor_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tutor_id", nullable = false)
     private Tutor tutor;
 
-    @ManyToOne
-	@JoinColumn(name = "tutoria_id") 
-	@JsonIgnore
-	private Tutoria tutoria;
-}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tutoria_id", nullable = false) 
+    private Tutoria tutoria;
+
     
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    private Boolean activo = true; // Permite "borrar" o desactivar el aviso sin perder el historial
+
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+}

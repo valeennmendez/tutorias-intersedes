@@ -1,6 +1,8 @@
 package com.example.tutorias.dto.tutoria;
 
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Sede;
+
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,6 +43,10 @@ public class CrearTutoriaRequest {
 
     private String ubicacion;
     private String linkVirtual;
+    private String linkDrive;
+
+    @NotNull(message = "La sede no puede ser nula")
+    private Sede sede;
 
     @NotNull
     @Positive

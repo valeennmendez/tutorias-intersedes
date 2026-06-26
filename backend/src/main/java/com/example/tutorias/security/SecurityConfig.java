@@ -15,11 +15,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableMethodSecurity
@@ -92,7 +95,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
 
-                .requestMatchers("/inscripciones/**").hasAnyRole("ALUMNO", "ADMIN")
+                .requestMatchers("/inscripciones/**").authenticated()
                 .requestMatchers("/feedback/**").hasAnyRole("ALUMNO", "ADMIN")
                 .requestMatchers("/avisos/**").hasAnyRole("TUTOR", "ADMIN", "ALUMNO")
                 .requestMatchers("/certificados/**").hasAnyRole("TUTOR", "ADMIN")
@@ -103,11 +106,24 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated()
             )
+
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint())
+            )
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Acceso denegado\", \"detalle\": \"" + authException.getMessage() + "\"}");
+        };
     }
 }
