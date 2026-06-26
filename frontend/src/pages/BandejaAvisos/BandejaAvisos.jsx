@@ -35,7 +35,7 @@ export default function BandejaAvisos() {
 						</div>
 					) : avisos.length > 0 ? (
 						<div className="space-y-4">
-							{avisos.map((aviso) => (
+							{[...avisos].sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)).map((aviso) => (
 								<div
 									key={aviso.id}
 									className="rounded-lg border p-4 space-y-2"
