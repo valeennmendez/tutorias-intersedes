@@ -31,7 +31,7 @@ public class PostulacionTutorController {
 
     // 1. Crear nueva postulación (Solo alumnos)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('ALUMNO')") // Protegemos el endpoint
+    @PreAuthorize("hasRole('ALUMNO') or hasRole('TUTOR')") // Protegemos el endpoint
     public ResponseEntity<PostulacionTutorResponseDTO> crearPostulacion(
             @RequestParam("materia_id") Long materiaId,
             @RequestParam("nota_aprobacion") Double notaAprobacion,
@@ -53,7 +53,7 @@ public class PostulacionTutorController {
 
     // 2. Ver mis postulaciones (El alumno ve su historial)
     @GetMapping("/mis-postulaciones")
-    @PreAuthorize("hasRole('ALUMNO')")
+    @PreAuthorize("hasRole('ALUMNO') or hasRole('TUTOR')")
     public ResponseEntity<List<PostulacionTutorResponseDTO>> obtenerMisPostulaciones(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {

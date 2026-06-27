@@ -1,5 +1,6 @@
 package com.example.tutorias.service;
 
+import com.example.tutorias.repository.TutorRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Persona;
 import com.example.tutorias.entity.PostulacionTutor;
 import com.example.tutorias.entity.PostulacionTutorEstado;
+import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.AlumnoRepository;
 import com.example.tutorias.repository.MateriaRepository;
@@ -23,7 +25,9 @@ import java.time.LocalDateTime;
 @Service
 public class PostulacionTutorServiceImp implements PostulacionTutorService {
     
-    @Autowired
+    private final TutorRepository tutorRepository;
+
+	 @Autowired
     private AlumnoRepository alumnoRepository;
     
     @Autowired
@@ -37,6 +41,10 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
 
     @Autowired
     private PostulacionTutorRepository postulacionTutorRepository;
+
+	 PostulacionTutorServiceImp(TutorRepository tutorRepository) {
+		this.tutorRepository = tutorRepository;
+	 }
 
     @Override
     @Transactional
@@ -113,23 +121,34 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
         return postulacion.getPdfPath();
     }
 
-    @Override
-    @Transactional
-    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
-        PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
-                .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
+@Override
+@Transactional
+public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
+    PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
+            .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
 
-        if (adminId != null) {
-            Persona administrador = personaRepository.findById(adminId)
-                    .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
-            postulacion.setRevisor(administrador);
-        }
-
-        postulacion.setEstado(nuevoEstado);
-        postulacion.setAdminComentario(adminComentario);
-        postulacion.setReviewedAt(LocalDateTime.now());
-        postulacionTutorRepository.save(postulacion);
+    if (adminId != null) {
+        Persona administrador = personaRepository.findById(adminId)
+                .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
+        postulacion.setRevisor(administrador);
     }
+
+    postulacion.setEstado(nuevoEstado);
+    postulacion.setAdminComentario(adminComentario);
+    postulacion.setReviewedAt(LocalDateTime.now());
+    postulacionTutorRepository.save(postulacion);
+
+    if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
+        Long tutorId = postulacion.getPostulante().getId();
+        Materia materia = postulacion.getMateria();
+
+        Tutor tutor = tutorRepository.findById(tutorId)
+                .orElseThrow(() -> new ReglaNegocioException("No existe un Tutor registrado para este postulante."));
+
+        tutor.getMaterias().add(materia);
+        tutorRepository.save(tutor);
+    }
+}
 
     @Override
     @Transactional
