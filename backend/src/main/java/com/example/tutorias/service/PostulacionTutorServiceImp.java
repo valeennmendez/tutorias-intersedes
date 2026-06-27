@@ -9,13 +9,16 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.tutorias.entity.Alumno;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Persona;
 import com.example.tutorias.entity.PostulacionTutor;
 import com.example.tutorias.entity.PostulacionTutorEstado;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.AlumnoRepository;
 import com.example.tutorias.repository.MateriaRepository;
+import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.PostulacionTutorRepository;
 import com.example.tutorias.dto.postulaciones.PostulacionTutorResponseDTO;
+import java.time.LocalDateTime;
 
 @Service
 public class PostulacionTutorServiceImp implements PostulacionTutorService {
@@ -28,6 +31,9 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private PersonaRepository personaRepository;
 
     @Autowired
     private PostulacionTutorRepository postulacionTutorRepository;
@@ -92,12 +98,36 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<PostulacionTutorResponseDTO> obtenerTodasPostulaciones() {
+        return postulacionTutorRepository.findAll().stream()
+                .map(PostulacionTutorResponseDTO::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String obtenerRutaPdfPostulacion(Long postulacionId) {
+        PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
+                .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
+        return postulacion.getPdfPath();
+    }
+
+    @Override
     @Transactional
-    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado) {
+    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
         PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
                 .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
 
+        if (adminId != null) {
+            Persona administrador = personaRepository.findById(adminId)
+                    .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
+            postulacion.setRevisor(administrador);
+        }
+
         postulacion.setEstado(nuevoEstado);
+        postulacion.setAdminComentario(adminComentario);
+        postulacion.setReviewedAt(LocalDateTime.now());
         postulacionTutorRepository.save(postulacion);
     }
 
