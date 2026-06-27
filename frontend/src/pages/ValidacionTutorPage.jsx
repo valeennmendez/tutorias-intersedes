@@ -1,224 +1,192 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  CheckCircle,
-  Trash2,
-  Users,
-  Home,
-  BookOpen,
-  ClipboardList,
-  GraduationCap,
-} from "lucide-react";
-import heroImage from "../assets/hero.png";
+import { useEffect, useState } from "react";
+import { axiosInstance } from "@/utils/axios";
+import { useAuthStore } from "@/store/auth.store";
+import toast from "react-hot-toast";
+import { CheckCircle, Trash2, Users, Eye } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-const EMAIL_EJEMPLO = "usuario.ejemplo@gmail.com";
-
-function obtenerEmailDesdeToken(token) {
-  if (!token) return EMAIL_EJEMPLO;
-
-  const cleanToken = token.replace("Bearer ", "");
-  const payload = cleanToken.split(".")[1];
-
-  if (!payload) return EMAIL_EJEMPLO;
-
-  try {
-    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = atob(base64);
-    const decoded = JSON.parse(jsonPayload);
-
-    return decoded.sub || EMAIL_EJEMPLO;
-  } catch {
-    return EMAIL_EJEMPLO;
-  }
-}
-
-const TUTORES_INICIALES = [
-  {
-    id: 1,
-    apellido: "Pérez",
-    nombre: "Juan",
-    estado: "pendiente",
-  },
-  {
-    id: 2,
-    apellido: "Gómez",
-    nombre: "Ana",
-    estado: "pendiente",
-  },
-  {
-    id: 3,
-    apellido: "López",
-    nombre: "Martín",
-    estado: "pendiente",
-  },
-];
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 export default function ValidacionTutorPage() {
-  const [tutores, setTutores] = useState(TUTORES_INICIALES);
-  const emailLogeado = obtenerEmailDesdeToken(localStorage.getItem("token"));
+	const user = useAuthStore((state) => state.user);
+	const [postulaciones, setPostulaciones] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [updating, setUpdating] = useState(false);
 
-  const aceptarTutor = (id) => {
-    setTutores((currentTutores) =>
-      currentTutores.map((tutor) =>
-        tutor.id === id
-          ? { ...tutor, estado: "aceptado" }
-          : tutor
-      )
-    );
-  };
+	useEffect(() => {
+		if (user?.role === "admin") {
+			fetchPostulaciones();
+		} else {
+			setLoading(false);
+		}
+	}, [user]);
 
-  const eliminarTutor = (id) => {
-    setTutores((currentTutores) =>
-      currentTutores.filter((tutor) => tutor.id !== id)
-    );
-  };
+	const fetchPostulaciones = async () => {
+		setLoading(true);
+		try {
+			const res = await axiosInstance.get("/postulaciones");
+			setPostulaciones(res.data);
+		} catch (error) {
+			console.error("Error al obtener postulaciones:", error);
+			toast.error("No se pudieron cargar las postulaciones.");
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  return (
-    <div className="min-h-screen bg-[#F7F9FB]">
-      {/* Navbar */}
-      <header className="border-b border-slate-200 bg-[#F7F9FB]">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-          {/* Logo */}
-          <div className="flex items-center gap-4">
-            <img src="/logo-unnoba.png" alt="logo-unnoba"  className="rounded-xl w-20" />
+	const handleDecision = async (id, estado) => {
+		const comentario = window.prompt("Agrega un comentario opcional para la decisión:", "");
+		if (comentario === null) return;
 
-            <h1 className="text-2xl font-bold text-slate-900">
-              Tutorías
-            </h1>
-          </div>
+		setUpdating(true);
+		try {
+			await axiosInstance.put(`/postulaciones/${id}/estado`, null, {
+				params: {
+					estado: estado,
+					comentario,
+				},
+			});
+			toast.success("Estado actualizado correctamente.");
+			fetchPostulaciones();
+		} catch (error) {
+			console.error("Error al actualizar estado:", error);
+			toast.error("No se pudo cambiar el estado de la postulación.");
+		} finally {
+			setUpdating(false);
+		}
+	};
 
-          {/* Menú */}
-          <nav className="flex items-center gap-2">
-            <Link
-              to="/"
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-            >
-              <Home className="h-5 w-5" />
-              Inicio
-            </Link>
+	const verPdf = (pdfUrl) => {
+		window.open(pdfUrl, "_blank");
+	};
 
-            <Link
-              to="/tutorias"
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-            >
-              <BookOpen className="h-5 w-5" />
-              Tutorías
-            </Link>
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-[#F7F9FB] px-4 py-10">
+				<div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl bg-white p-10 shadow-sm">
+					<Loader2 className="mr-3 h-6 w-6 animate-spin text-slate-600" />
+					<span className="text-slate-700">Cargando postulaciones...</span>
+				</div>
+			</div>
+		);
+	}
 
-            <Link
-              to="/mis-inscripciones"
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-            >
-              <ClipboardList className="h-5 w-5" />
-              Mis Inscripciones
-            </Link>
+	if (user?.role !== "admin") {
+		return (
+			<div className="min-h-screen bg-[#F7F9FB] px-4 py-10">
+				<div className="mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-2xl bg-white p-10 shadow-sm">
+					<h1 className="text-3xl font-bold text-slate-900">Acceso denegado</h1>
+					<p className="text-slate-600">Esta página solo está disponible para administradores.</p>
+				</div>
+			</div>
+		);
+	}
 
-            <Link
-              to="/validacion-tutores"
-              className="flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2 text-slate-900"
-            >
-              <GraduationCap className="h-5 w-5" />
-              Panel Tutor
-            </Link>
-          </nav>
+	return (
+		<div className="min-h-screen bg-[#F7F9FB] px-4 py-10">
+			<div className="mx-auto w-full max-w-6xl space-y-6">
+				<div className="rounded-3xl bg-white p-8 shadow-sm">
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h1 className="text-3xl font-bold text-slate-900">Validación de Tutores</h1>
+							<p className="text-slate-600">
+								Revisa las postulaciones de los aspirantes a tutor y acepta o rechaza cada caso.
+							</p>
+						</div>
+						<div className="rounded-full bg-sky-100 px-4 py-2 text-sky-700">ADMIN</div>
+					</div>
+				</div>
 
-          {/* Usuario */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#008BBA] font-semibold text-white">
-              {emailLogeado.slice(0, 2).toUpperCase()}
-            </div>
+				{postulaciones.length === 0 ? (
+					<div className="rounded-3xl bg-white p-10 text-center text-slate-600 shadow-sm">
+						No hay postulaciones pendientes por revisar.
+					</div>
+				) : (
+					<div className="grid gap-6">
+						{postulaciones.map((postulacion) => (
+							<Card key={postulacion.id} className="border-slate-200 shadow-md">
+								<CardHeader className="pb-2">
+									<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+										<div>
+											<CardTitle className="text-xl text-slate-900">
+												{postulacion.postulante?.apellido}, {postulacion.postulante?.nombre}
+											</CardTitle>
+											<CardDescription>
+												{postulacion.postulante?.email}
+											</CardDescription>
+										</div>
+										<div className="flex flex-wrap items-center gap-2">
+											<Badge variant={postulacion.status === "pendiente" ? "secondary" : postulacion.status === "aprobada" ? "success" : "destructive"}>
+												{postulacion.status === "pendiente" ? "Pendiente" : postulacion.status === "aprobada" ? "Aprobada" : "Rechazada"}
+											</Badge>
+											<Button type="button" variant="outline" size="sm" onClick={() => verPdf(postulacion.pdf_url)}>
+												<Eye className="mr-2 h-4 w-4" />
+												Ver PDF
+											</Button>
+										</div>
+									</div>
+							</CardHeader>
 
-            <span className="font-medium text-slate-700">
-              {emailLogeado}
-            </span>
-          </div>
-        </div>
-      </header>
+							<CardContent className="space-y-4">
+								<div className="grid gap-3 sm:grid-cols-3">
+									<div>
+										<p className="text-sm text-slate-500">Materia</p>
+										<p className="text-base font-medium text-slate-800">{postulacion.materia?.nombre}</p>
+									</div>
+									<div>
+										<p className="text-sm text-slate-500">Nota</p>
+										<p className="text-base font-medium text-slate-800">{postulacion.nota_aprobacion}</p>
+									</div>
+									<div>
+										<p className="text-sm text-slate-500">Modalidad</p>
+										<p className="text-base font-medium text-slate-800">{postulacion.modalidad_preferencia}</p>
+									</div>
+								</div>
 
-      {/* Contenido */}
-      <div className="px-4 py-10">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-          <div className="flex flex-col gap-2 text-center sm:text-left">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 sm:mx-0">
-              <Users className="h-6 w-6 text-[#008BBA]" />
-            </div>
+								<div className="grid gap-3 sm:grid-cols-2">
+									<div>
+										<p className="text-sm text-slate-500">Sede preferida</p>
+										<p className="text-base font-medium text-slate-800">{postulacion.sede_preferencia}</p>
+									</div>
+									<div>
+										<p className="text-sm text-slate-500">Comentario del admin</p>
+										<p className="text-base font-medium text-slate-800">{postulacion.admin_comentario || "Sin comentario"}</p>
+									</div>
+								</div>
 
-            <h1 className="text-3xl font-bold text-slate-900">
-              Validación de Tutores
-            </h1>
+								<div>
+									<p className="text-sm text-slate-500">Justificación</p>
+									<p className="whitespace-pre-line rounded-2xl bg-slate-50 p-4 text-slate-700">{postulacion.justificacion}</p>
+								</div>
 
-            <p className="text-sm text-slate-600">
-              Revisá los postulantes y aceptá o eliminá cada tutor desde esta lista.
-            </p>
-          </div>
-
-          <div className="grid gap-4">
-            {tutores.map((tutor) => (
-              <Card
-                key={tutor.id}
-                className="border-slate-200 shadow-md"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <CardTitle className="text-xl text-slate-900">
-                        {tutor.apellido}, {tutor.nombre}
-                      </CardTitle>
-
-                      <CardDescription>
-                        Postulación de tutor pendiente de revisión
-                      </CardDescription>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        tutor.estado === "aceptado"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {tutor.estado === "aceptado"
-                        ? "Aceptado"
-                        : "Pendiente"}
-                    </span>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="flex flex-col gap-4 pt-0 sm:flex-row sm:items-center sm:justify-end">
-                  <Button
-                    type="button"
-                    onClick={() => aceptarTutor(tutor.id)}
-                    disabled={tutor.estado === "aceptado"}
-                    className="bg-[#008BBA] text-white hover:bg-[#00779f]"
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Aceptar
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => eliminarTutor(tutor.id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+								<div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+									<Button
+										type="button"
+										disabled={postulacion.status !== "pendiente" || updating}
+										onClick={() => handleDecision(postulacion.id, "APROBADA")}
+										className="bg-emerald-600 text-white hover:bg-emerald-700"
+									>
+										<CheckCircle className="mr-2 h-4 w-4" />
+										Aceptar
+									</Button>
+									<Button
+										type="button"
+										variant="destructive"
+										disabled={postulacion.status !== "pendiente" || updating}
+										onClick={() => handleDecision(postulacion.id, "RECHAZADA")}
+									>
+										<Trash2 className="mr-2 h-4 w-4" />
+										Rechazar
+									</Button>
+								</div>
+							</CardContent>
+							</Card>
+						))}
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }

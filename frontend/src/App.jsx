@@ -30,11 +30,13 @@ function App() {
 				{/* Rutas públicas */}
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignUpPage />} />
-				<Route path="/validacion-tutores" element={<ValidacionTutorPage/>} />
-				<Route path="/filtros-tutores" element={<FiltroTutorPage/>} />			<Route path="/feedback-tutores" element={<FeedbackTutorPage/>} />
+
 				{/* Rutas protegidas agrupadas */}
 				<Route element={<ProtecetedRoute />}>
 					<Route element={<LayoutNavbar />}>
+						<Route path="/validacion-tutores" element={<ValidacionTutorPage />} />
+						<Route path="/filtros-tutores" element={<FiltroTutorPage />} />{" "}
+						<Route path="/feedback-tutores" element={<FeedbackTutorPage />} />
 						<Route path="/dashboard" element={<Home />} />
 						<Route path="/prueba" element={<PruebaPage />} />
 						<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
