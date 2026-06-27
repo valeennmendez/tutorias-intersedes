@@ -48,7 +48,7 @@ public class PostulacionTutorResponseDTO {
         dto.setCreated_at(postulacion.getCreatedAt());
         dto.setSede_preferencia(postulacion.getSedePreferencia());
         dto.setModalidad_preferencia(postulacion.getModalidadPreferencia().name());
-        dto.setPdf_url("/postulaciones/" + postulacion.getId() + "/pdf");
+        dto.setPdf_url("http://localhost:8080/postulaciones/" + postulacion.getId() + "/pdf");
 
         MateriaDto materiaDto = new MateriaDto();
         materiaDto.setNombre(postulacion.getMateria().getNombre());

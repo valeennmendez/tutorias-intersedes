@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { axiosInstance } from "@/utils/axios";
 import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
-import { CheckCircle, Trash2, Users, Eye } from "lucide-react";
+import { CheckCircle, Trash2, Eye } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,15 +15,7 @@ export default function ValidacionTutorPage() {
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState(false);
 
-	useEffect(() => {
-		if (user?.role === "admin") {
-			fetchPostulaciones();
-		} else {
-			setLoading(false);
-		}
-	}, [user]);
-
-	const fetchPostulaciones = async () => {
+	const fetchPostulaciones = useCallback(async () => {
 		setLoading(true);
 		try {
 			const res = await axiosInstance.get("/postulaciones");
@@ -34,7 +26,17 @@ export default function ValidacionTutorPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (!user) {
+			return;
+		}
+
+		if (user.role === "admin") {
+			fetchPostulaciones();
+		}
+	}, [user, fetchPostulaciones]);
 
 	const handleDecision = async (id, estado) => {
 		const comentario = window.prompt("Agrega un comentario opcional para la decisión:", "");
@@ -58,8 +60,18 @@ export default function ValidacionTutorPage() {
 		}
 	};
 
-	const verPdf = (pdfUrl) => {
-		window.open(pdfUrl, "_blank");
+	const verPdf = async (id) => {
+		try {
+			const response = await axiosInstance.get(`/postulaciones/${id}/pdf`, {
+				responseType: "blob",
+			});
+
+			const fileUrl = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+			window.open(fileUrl, "_blank", "noopener,noreferrer");
+		} catch (error) {
+			console.error("Error al abrir el PDF:", error);
+			toast.error("No se pudo abrir el PDF de la postulación.");
+		}
 	};
 
 	if (loading) {
@@ -129,7 +141,7 @@ export default function ValidacionTutorPage() {
 														? "Aprobada"
 														: "Rechazada"}
 											</Badge>
-											<Button type="button" variant="outline" size="sm" onClick={() => verPdf(postulacion.pdf_url)}>
+											<Button type="button" variant="outline" size="sm" onClick={() => verPdf(postulacion.id)}>
 												<Eye className="mr-2 h-4 w-4" />
 												Ver PDF
 											</Button>
