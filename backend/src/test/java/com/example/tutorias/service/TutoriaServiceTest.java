@@ -262,4 +262,69 @@ class TutoriaServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("No se encontraron tutorías con los filtros aplicados.", exception.getReason());
     }
+    @Test
+    void eliminarTutoria_CuandoEsFuturaYDelTutor_LograBajaLogica() {
+        Tutor tutor = tutorAprobado();
+        tutor.setEmail("tutor@test.com");
+        Tutoria tutoria = tutoriaFutura(tutor);
+
+        when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoria));
+        when(tutorRepository.findByEmail("tutor@test.com")).thenReturn(Optional.of(tutor));
+
+        tutoriaService.eliminarTutoria(1L, "tutor@test.com");
+
+        assertEquals(EstadoTutoria.CANCELADA, tutoria.getEstado());
+        verify(tutoriaRepository, times(1)).save(tutoria);
+    }
+
+    @Test
+    void eliminarTutoria_CuandoYaInicio_LanzaExcepcionYNoGuarda() {
+        Tutor tutor = tutorAprobado();
+        tutor.setEmail("tutor@test.com");
+        Tutoria tutoria = tutoriaFutura(tutor);
+        tutoria.setFecha(LocalDate.now().minusDays(1));
+
+        when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoria));
+        when(tutorRepository.findByEmail("tutor@test.com")).thenReturn(Optional.of(tutor));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
+                tutoriaService.eliminarTutoria(1L, "tutor@test.com")
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(tutoriaRepository, never()).save(any(Tutoria.class));
+    }
+
+    @Test
+    void eliminarTutoria_CuandoNoPerteneceAlTutor_LanzaForbidden() {
+        Tutor tutorLogueado = tutorAprobado();
+        tutorLogueado.setId(1L);
+        tutorLogueado.setEmail("tutor@test.com");
+
+        Tutor otroTutor = tutorAprobado();
+        otroTutor.setId(99L);
+        Tutoria tutoria = tutoriaFutura(otroTutor);
+
+        when(tutoriaRepository.findById(1L)).thenReturn(Optional.of(tutoria));
+        when(tutorRepository.findByEmail("tutor@test.com")).thenReturn(Optional.of(tutorLogueado));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
+                tutoriaService.eliminarTutoria(1L, "tutor@test.com")
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+        verify(tutoriaRepository, never()).save(any(Tutoria.class));
+    }
+
+    private Tutoria tutoriaFutura(Tutor tutor) {
+        Tutoria tutoria = new Tutoria();
+        tutoria.setId(1L);
+        tutoria.setNombre("Tutoria futura");
+        tutoria.setFecha(LocalDate.now().plusDays(1));
+        tutoria.setHoraInicio(LocalTime.of(10, 0));
+        tutoria.setHoraFin(LocalTime.of(12, 0));
+        tutoria.setEstado(EstadoTutoria.ACTIVA);
+        tutoria.setTutor(tutor);
+        return tutoria;
+    }
 }
