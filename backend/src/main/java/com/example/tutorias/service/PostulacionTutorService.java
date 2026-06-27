@@ -13,6 +13,8 @@ public interface PostulacionTutorService {
 
     PostulacionTutorResponseDTO registrarPostulacion(Long alumnoId, Long materiaId, Double notaAprobacion, String justificacion, String sedePreferencia, ModalidadTutoria modalidad, MultipartFile archivoPdf);
     public List<PostulacionTutorResponseDTO> obtenerPostulacionesPorAlumno(Long alumnoId);
-    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado);
+    public List<PostulacionTutorResponseDTO> obtenerTodasPostulaciones();
+    public String obtenerRutaPdfPostulacion(Long postulacionId);
+    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario);
     public void eliminarPostulacion(Long postulacionId, Long alumnoId);
 }

@@ -1,9 +1,11 @@
 package com.example.tutorias.service;
 
+import com.example.tutorias.dto.auth.CrearAdminRequestDTO;
 import com.example.tutorias.dto.auth.LoginRequestDTO;
 import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
 import com.example.tutorias.dto.auth.UsuarioResponseDTO;
+import com.example.tutorias.entity.Administrador;
 import com.example.tutorias.entity.Alumno;
 import com.example.tutorias.entity.Carrera;
 import com.example.tutorias.entity.Persona;
@@ -89,6 +91,27 @@ public class AuthServiceImp implements AuthService {
         nuevoAlumno.setEstado(true); // Por defecto, el nuevo alumno queda activo. Se puede cambiar según la lógica de negocio (ej: requerir verificación por email).
         // perisstimos
         alumnoRepository.save(nuevoAlumno);
+    }
+
+    @Override
+    public void crearAdmin(CrearAdminRequestDTO crearAdminRequest) {
+        String emailLimpio = crearAdminRequest.getEmail().trim().toLowerCase();
+
+        if (personaRepository.existsByEmail(emailLimpio)) {
+            throw new ReglaNegocioException("El email ya se encuentra registrado.");
+        }
+
+        Administrador nuevoAdmin = new Administrador();
+        nuevoAdmin.setNombre(crearAdminRequest.getNombre().trim());
+        nuevoAdmin.setApellido(crearAdminRequest.getApellido().trim());
+        nuevoAdmin.setEmail(emailLimpio);
+        nuevoAdmin.setPassword(passwordEncoder.encode(crearAdminRequest.getPassword().trim()));
+        nuevoAdmin.setRole(Role.ADMIN);
+        nuevoAdmin.setActivo(true);
+        nuevoAdmin.setFechanacimiento(java.time.LocalDate.of(1990, 1, 1));
+        nuevoAdmin.setDireccion("Sin definir");
+
+        personaRepository.save(nuevoAdmin);
     }
 
     @Override

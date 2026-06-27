@@ -13,8 +13,8 @@ import java.util.UUID;
 @Service
 public class FileStorageServiceImp implements FileStorageService {
 
-    // Se guardará en una carpeta 'uploads' en la raíz del proyecto
-    private final Path rootLocation = Paths.get("uploads/certificados");
+    // Se guardará en una carpeta 'upload/certificaciones' en la raíz del proyecto
+    private final Path rootLocation = Paths.get("upload", "certificaciones");
 
     @Override
     public String guardarArchivo(MultipartFile archivo) {
