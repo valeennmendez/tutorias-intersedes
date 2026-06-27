@@ -91,9 +91,7 @@ export default function ValidacionTutorPage() {
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<h1 className="text-3xl font-bold text-slate-900">Validación de Tutores</h1>
-							<p className="text-slate-600">
-								Revisa las postulaciones de los aspirantes a tutor y acepta o rechaza cada caso.
-							</p>
+							<p className="text-slate-600">Revisa las postulaciones de los aspirantes a tutor y acepta o rechaza cada caso.</p>
 						</div>
 						<div className="rounded-full bg-sky-100 px-4 py-2 text-sky-700">ADMIN</div>
 					</div>
@@ -113,13 +111,23 @@ export default function ValidacionTutorPage() {
 											<CardTitle className="text-xl text-slate-900">
 												{postulacion.postulante?.apellido}, {postulacion.postulante?.nombre}
 											</CardTitle>
-											<CardDescription>
-												{postulacion.postulante?.email}
-											</CardDescription>
+											<CardDescription>{postulacion.postulante?.email}</CardDescription>
 										</div>
 										<div className="flex flex-wrap items-center gap-2">
-											<Badge variant={postulacion.status === "pendiente" ? "secondary" : postulacion.status === "aprobada" ? "success" : "destructive"}>
-												{postulacion.status === "pendiente" ? "Pendiente" : postulacion.status === "aprobada" ? "Aprobada" : "Rechazada"}
+											<Badge
+												variant={
+													postulacion.status === "pendiente"
+														? "secondary"
+														: postulacion.status === "aprobada"
+															? "success"
+															: "destructive"
+												}
+											>
+												{postulacion.status === "pendiente"
+													? "Pendiente"
+													: postulacion.status === "aprobada"
+														? "Aprobada"
+														: "Rechazada"}
 											</Badge>
 											<Button type="button" variant="outline" size="sm" onClick={() => verPdf(postulacion.pdf_url)}>
 												<Eye className="mr-2 h-4 w-4" />
@@ -127,61 +135,61 @@ export default function ValidacionTutorPage() {
 											</Button>
 										</div>
 									</div>
-							</CardHeader>
+								</CardHeader>
 
-							<CardContent className="space-y-4">
-								<div className="grid gap-3 sm:grid-cols-3">
-									<div>
-										<p className="text-sm text-slate-500">Materia</p>
-										<p className="text-base font-medium text-slate-800">{postulacion.materia?.nombre}</p>
+								<CardContent className="space-y-4">
+									<div className="grid gap-3 sm:grid-cols-3">
+										<div>
+											<p className="text-sm text-slate-500">Materia</p>
+											<p className="text-base font-medium text-slate-800">{postulacion.materia?.nombre}</p>
+										</div>
+										<div>
+											<p className="text-sm text-slate-500">Nota</p>
+											<p className="text-base font-medium text-slate-800">{postulacion.nota_aprobacion}</p>
+										</div>
+										<div>
+											<p className="text-sm text-slate-500">Modalidad</p>
+											<p className="text-base font-medium text-slate-800">{postulacion.modalidad_preferencia}</p>
+										</div>
 									</div>
-									<div>
-										<p className="text-sm text-slate-500">Nota</p>
-										<p className="text-base font-medium text-slate-800">{postulacion.nota_aprobacion}</p>
-									</div>
-									<div>
-										<p className="text-sm text-slate-500">Modalidad</p>
-										<p className="text-base font-medium text-slate-800">{postulacion.modalidad_preferencia}</p>
-									</div>
-								</div>
 
-								<div className="grid gap-3 sm:grid-cols-2">
-									<div>
-										<p className="text-sm text-slate-500">Sede preferida</p>
-										<p className="text-base font-medium text-slate-800">{postulacion.sede_preferencia}</p>
+									<div className="grid gap-3 sm:grid-cols-2">
+										<div>
+											<p className="text-sm text-slate-500">Sede preferida</p>
+											<p className="text-base font-medium text-slate-800">{postulacion.sede_preferencia}</p>
+										</div>
+										<div>
+											<p className="text-sm text-slate-500">Comentario del admin</p>
+											<p className="text-base font-medium text-slate-800">{postulacion.admin_comentario || "Sin comentario"}</p>
+										</div>
 									</div>
+
 									<div>
-										<p className="text-sm text-slate-500">Comentario del admin</p>
-										<p className="text-base font-medium text-slate-800">{postulacion.admin_comentario || "Sin comentario"}</p>
+										<p className="text-sm text-slate-500">Justificación</p>
+										<p className="whitespace-pre-line rounded-2xl bg-slate-50 p-4 text-slate-700">{postulacion.justificacion}</p>
 									</div>
-								</div>
 
-								<div>
-									<p className="text-sm text-slate-500">Justificación</p>
-									<p className="whitespace-pre-line rounded-2xl bg-slate-50 p-4 text-slate-700">{postulacion.justificacion}</p>
-								</div>
-
-								<div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-									<Button
-										type="button"
-										disabled={postulacion.status !== "pendiente" || updating}
-										onClick={() => handleDecision(postulacion.id, "APROBADA")}
-										className="bg-emerald-600 text-white hover:bg-emerald-700"
-									>
-										<CheckCircle className="mr-2 h-4 w-4" />
-										Aceptar
-									</Button>
-									<Button
-										type="button"
-										variant="destructive"
-										disabled={postulacion.status !== "pendiente" || updating}
-										onClick={() => handleDecision(postulacion.id, "RECHAZADA")}
-									>
-										<Trash2 className="mr-2 h-4 w-4" />
-										Rechazar
-									</Button>
-								</div>
-							</CardContent>
+									<div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+										<Button
+											type="button"
+											disabled={postulacion.status !== "pendiente" || updating}
+											onClick={() => handleDecision(postulacion.id, "APROBADA")}
+											className="bg-emerald-600 text-white hover:bg-emerald-700"
+										>
+											<CheckCircle className="mr-2 h-4 w-4" />
+											Aceptar
+										</Button>
+										<Button
+											type="button"
+											variant="destructive"
+											disabled={postulacion.status !== "pendiente" || updating}
+											onClick={() => handleDecision(postulacion.id, "RECHAZADA")}
+										>
+											<Trash2 className="mr-2 h-4 w-4" />
+											Rechazar
+										</Button>
+									</div>
+								</CardContent>
 							</Card>
 						))}
 					</div>
