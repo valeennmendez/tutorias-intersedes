@@ -6,6 +6,9 @@ import SignUpPage from "./pages/SignUpPage";
 import PruebaPage from "./pages/PruebaPage";
 import Home from "./pages/Home/Home";
 import PostulacionTutorClient from "./pages/PostulacionTutor/PostulacionTutorClient";
+import FiltroTutorPage from "./pages/FiltroTutorPage";
+import ValidacionTutorPage from "./pages/ValidacionTutorPage";
+import FeedbackTutorPage from "./pages/FeedbackTutor";
 import ProtecetedRoute from "./components/ProtectedRoute";
 import CrearTutoriaPage from "./pages/CrearTutoriaPage";
 import LayoutNavbar from "./components/layouts/LayoutNavbar";
@@ -27,7 +30,8 @@ function App() {
 				{/* Rutas públicas */}
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignUpPage />} />
-
+				<Route path="/validacion-tutores" element={<ValidacionTutorPage/>} />
+				<Route path="/filtros-tutores" element={<FiltroTutorPage/>} />			<Route path="/feedback-tutores" element={<FeedbackTutorPage/>} />
 				{/* Rutas protegidas agrupadas */}
 				<Route element={<ProtecetedRoute />}>
 					<Route element={<LayoutNavbar />}>
