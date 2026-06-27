@@ -1,5 +1,6 @@
 package com.example.tutorias.specification;
 
+import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutoria;
@@ -14,6 +15,7 @@ public class TutoriaSpecification {
     public static Specification<Tutoria> conFiltros(String materiaNombre, Sede sede, ModalidadTutoria modalidad) {
         return (root, query, cb) -> {
             List<Predicate> predicados = new ArrayList<>();
+            predicados.add(cb.equal(root.get("estado"), EstadoTutoria.ACTIVA));
 
             // 1. Filtro por Materia (LIKE ignorando mayúsculas)
             if (materiaNombre != null && !materiaNombre.trim().isEmpty()) {

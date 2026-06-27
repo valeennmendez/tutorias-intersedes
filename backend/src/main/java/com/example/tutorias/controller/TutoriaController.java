@@ -7,9 +7,14 @@ import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.service.TutoriaService;
 import jakarta.validation.Valid;
+
+import java.security.Principal;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/tutorias")
@@ -35,6 +38,13 @@ public class TutoriaController {
     @ResponseStatus(HttpStatus.CREATED)
     public TutoriaResponse crearTutoria(@Valid @RequestBody CrearTutoriaRequest request) {
         return tutoriaService.crearTutoria(request);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('TUTOR')")
+    public ResponseEntity<Void> eliminarTutoria(@PathVariable Long id, Principal principal) {
+        tutoriaService.eliminarTutoria(id, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 
     /* * COMENTADO POR Dounchers - RF-03

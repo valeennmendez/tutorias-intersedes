@@ -34,6 +34,10 @@ public class InscripcionService {
         Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoría no encontrada."));
 
+        if (tutoria.getEstado() != EstadoTutoria.ACTIVA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La tutoría no se encuentra activa.");
+        }
+
         Alumno alumno = alumnoRepository.findByEmail(emailAlumno)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado."));
 

@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -92,6 +94,30 @@ public class TutoriaService {
         return toResponse(guardada);
     }
 
+    @Transactional
+    public void eliminarTutoria(Long tutoriaId, String emailTutor) {
+        Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoria no encontrada"));
+
+        Tutor tutor = tutorRepository.findByEmail(emailTutor)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor no encontrado"));
+
+        if (tutoria.getTutor() == null || !tutoria.getTutor().getId().equals(tutor.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar esta tutoria");
+        }
+
+        if (tutoria.getEstado() == EstadoTutoria.CANCELADA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La tutoria ya esta dada de baja");
+        }
+
+        if (tutoriaYaInicio(tutoria)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede dar de baja una tutoria que ya inicio");
+        }
+
+        tutoria.setEstado(EstadoTutoria.CANCELADA);
+        tutoriaRepository.save(tutoria);
+    }
+
     @Transactional(readOnly = true)
     public List<TutoriaResponse> obtenerTutorias() {
         return tutoriaRepository.findAll().stream()
@@ -146,6 +172,14 @@ public class TutoriaService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private boolean tutoriaYaInicio(Tutoria tutoria) {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        return tutoria.getFecha().isBefore(hoy)
+                || (tutoria.getFecha().isEqual(hoy) && !tutoria.getHoraInicio().isAfter(ahora));
     }
 
     @Transactional(readOnly = true)
