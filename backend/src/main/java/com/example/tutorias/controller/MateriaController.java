@@ -23,4 +23,9 @@ public class MateriaController {
     public List<MateriaResponse> obtenerMateriasPorTutor(@PathVariable Long tutorId) {
         return materiaService.obtenerMateriasPorTutor(tutorId);
     }
+
+    @GetMapping
+    public List<MateriaResponse> obtenerTodasMaterias() {
+        return materiaService.obtenerTodasMaterias();
+    }
 }
