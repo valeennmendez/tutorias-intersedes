@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.tutorias.dto.inscripcion.HistorialTutoriaAlumnoDTO;
 import com.example.tutorias.dto.inscripcion.InscripcionResponseDTO;
 import com.example.tutorias.service.InscripcionService;
 
@@ -49,6 +50,13 @@ public class InscripcionController {
     public ResponseEntity<List<InscripcionResponseDTO>> obtenerMisInscripciones(Principal principal) {
         List<InscripcionResponseDTO> inscripciones = inscripcionService.obtenerMisInscripciones(principal.getName());
         return ResponseEntity.ok(inscripciones);
+    }
+
+    @GetMapping("/historial")
+    @PreAuthorize("hasRole('ALUMNO')")
+    public ResponseEntity<List<HistorialTutoriaAlumnoDTO>> obtenerHistorialTutorias(Principal principal) {
+        List<HistorialTutoriaAlumnoDTO> historial = inscripcionService.obtenerHistorialTutoriasAlumno(principal.getName());
+        return ResponseEntity.ok(historial);
     }
 
     // Endpoint para que el Tutor pase lista
