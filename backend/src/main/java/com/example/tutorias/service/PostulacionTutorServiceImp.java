@@ -1,6 +1,8 @@
 package com.example.tutorias.service;
 
 import com.example.tutorias.repository.TutorRepository;
+
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -109,6 +111,7 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     @Transactional(readOnly = true)
     public List<PostulacionTutorResponseDTO> obtenerTodasPostulaciones() {
         return postulacionTutorRepository.findAll().stream()
+                .sorted(Comparator.comparing(PostulacionTutor::getCreatedAt).reversed())
                 .map(PostulacionTutorResponseDTO::from)
                 .toList();
     }
