@@ -55,11 +55,8 @@ public class Alumno extends Persona {
     @JoinColumn(name = "carrera_id", nullable = false) //crea la fk en la tabla alumno
     private Carrera carrera; //en el trello se indica que las carreras aparecen precargadas en la bd
 
-    // Un alumno puede tener múltiples inscripciones, feedbacks brindadas
+    // Un alumno puede tener múltiples inscripciones
     @OneToMany(mappedBy = "alumno")
     private List<Inscripcion> inscripciones;
-
-    @OneToMany(mappedBy = "alumno")
-    private List<Feedback> feedbacksBrindados;
 
 }

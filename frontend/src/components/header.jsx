@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logo from "../assets/img/unnoba-logo.png";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -13,10 +13,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, Shield, ClipboardList } from "lucide-react";
+import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, Shield, ClipboardList, Bell, BellRing, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuthStore } from "../store/auth.store";
+import { useAvisosStore } from "../store/avisos.store";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 export function DashboardHeader({ profile }) {
 	const navigate = useNavigate();
@@ -45,21 +48,36 @@ export function DashboardHeader({ profile }) {
 		}
 	};
 
+	const { notificaciones, notificacionesLoading, notificacionesLeidas, notificacionesVersion, fetchNotificaciones, marcarLeidas } = useAvisosStore();
+
+	const notifsOrdenadas = [...notificaciones].sort(
+		(a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)
+	);
+	const noLeidas = notificaciones.filter((n) => !notificacionesLeidas.includes(n.id));
+	const noLeidasCount = noLeidas.length;
+
+	useEffect(() => {
+		fetchNotificaciones();
+	}, [fetchNotificaciones, notificacionesVersion]);
+
 	const navItems = [
 		{ href: "/dashboard", label: "Inicio", icon: Home },
 		{ href: "/dashboard/tutorias", label: "Tutorías", icon: BookOpen },
-		{ href: "/dashboard/mis-inscripciones", label: "Mis Inscripciones", icon: Calendar },
 	];
 
 	if (profile.role === "tutor" || profile.role === "admin") {
 		navItems.push({ href: "/tutor", label: "Panel Tutor", icon: GraduationCap });
+		navItems.push({ href: "/dashboard/gestionar-avisos", label: "Gestionar Avisos", icon: Bell });
 	}
 
 	if (profile.role === "admin") {
 		navItems.push({ href: "/admin", label: "Administración", icon: Shield });
+		navItems.push({ href: "/dashboard/bandeja-avisos", label: "Bandeja de Avisos", icon: Bell });
 	}
 
 	if (profile.role === "alumno") {
+		navItems.push({ href: "/dashboard/mis-inscripciones", label: "Mis Inscripciones", icon: Calendar });
+		navItems.push({ href: "/dashboard/bandeja-avisos", label: "Bandeja de Avisos", icon: Bell });
 		navItems.push({ href: "/postulacion-tutor", label: "Ser Tutor", icon: ClipboardList });
 	}
 
@@ -92,6 +110,77 @@ export function DashboardHeader({ profile }) {
 				</nav>
 
 				<div className="flex items-center gap-2">
+					{/* Notification Bell */}
+					<DropdownMenu onOpenChange={(open) => { if (open) marcarLeidas(notificaciones.map((n) => n.id)); }}>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon" className="relative">
+								{notificacionesLoading ? (
+									<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+								) : noLeidasCount > 0 ? (
+									<BellRing className="h-5 w-5 text-amber-500" />
+								) : (
+									<Bell className="h-5 w-5 text-muted-foreground" />
+								)}
+								{noLeidasCount > 0 && (
+									<span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+										{noLeidasCount > 9 ? "9+" : noLeidasCount}
+									</span>
+								)}
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-80">
+							<DropdownMenuLabel>
+								<div className="flex items-center justify-between">
+									<span className="text-sm font-medium">Notificaciones</span>
+									<BellRing className="h-4 w-4 text-muted-foreground" />
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							{notificaciones.length === 0 ? (
+								<div className="px-2 py-6 text-center text-sm text-muted-foreground">
+									<Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
+									No hay notificaciones
+								</div>
+							) : (
+								<>
+									<div className="max-h-72 overflow-y-auto">
+										{notifsOrdenadas.slice(0, 5).map((aviso) => {
+											const leido = notificacionesLeidas.includes(aviso.id);
+											return (
+												<DropdownMenuItem key={aviso.id} asChild className="cursor-pointer">
+													<Link
+													to="/dashboard/bandeja-avisos"
+													className="flex flex-col items-start gap-1 px-3 py-2 relative"
+													>
+														{!leido && (
+															<span className="absolute left-1 top-3 h-2 w-2 rounded-full bg-blue-500" />
+														)}
+														<span className={"text-sm font-medium leading-tight" + (!leido ? " ml-3" : "")}>
+															{aviso.titulo}
+														</span>
+														<span className={"text-xs text-muted-foreground line-clamp-1" + (!leido ? " ml-3" : "")}>{aviso.nombreTutoria}</span>
+														<span className={"text-[10px] text-muted-foreground/70" + (!leido ? " ml-3" : "")}>
+															{formatDistanceToNow(new Date(aviso.fechaCreacion), { addSuffix: true, locale: es })}
+														</span>
+													</Link>
+												</DropdownMenuItem>
+											);
+										})}
+									</div>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem asChild>
+										<Link
+											to="/dashboard/bandeja-avisos"
+											className="justify-center text-sm font-medium text-primary cursor-pointer"
+										>
+											Ver todos los avisos
+										</Link>
+									</DropdownMenuItem>
+								</>
+							)}
+						</DropdownMenuContent>
+					</DropdownMenu>
+
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="gap-2 px-2">

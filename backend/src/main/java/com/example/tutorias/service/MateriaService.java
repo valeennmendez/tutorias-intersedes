@@ -35,4 +35,12 @@ public class MateriaService {
                 .map(MateriaResponse::from)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<MateriaResponse> obtenerTodasMaterias() {
+        List<Materia> materias = materiaRepository.findAll();
+        return materias.stream()
+                .map(MateriaResponse::from)
+                .toList();
+    }
 }

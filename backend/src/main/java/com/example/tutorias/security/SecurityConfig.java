@@ -81,6 +81,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/create-admin").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/create-admin/").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/verify-otp").permitAll()
                 .requestMatchers("/error").permitAll() // Permitir acceso a la página de error sin autenticación
                 .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
@@ -103,6 +105,7 @@ public class SecurityConfig {
                 .requestMatchers("/alumnos/**").hasAnyRole("ALUMNO", "ADMIN")
                 .requestMatchers("/tutores/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/feedback/**").authenticated()
 
                 .anyRequest().authenticated()
             )

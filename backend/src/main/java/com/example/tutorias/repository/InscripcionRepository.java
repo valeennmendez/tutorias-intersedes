@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.tutorias.entity.Inscripcion;
@@ -27,5 +28,11 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Long> 
     //para que un alumno pueda ver todas sus inscripciones, útil para el front
     List<Inscripcion> findByAlumnoEmail(String alumnoEmail);
     
-
+    @Query("SELECT COUNT(i) > 0 FROM Inscripcion i " +
+           "WHERE i.alumno.email = :emailAlumno " +
+           "AND i.status = 'ACTIVA' " + 
+           "AND i.feedback IS NULL " +
+           "AND (i.tutoria.fecha < CURRENT_DATE " +
+           "OR (i.tutoria.fecha = CURRENT_DATE AND i.tutoria.horaInicio <= CURRENT_TIME))")
+    boolean tieneFeedbackPendiente(String emailAlumno);
 }
