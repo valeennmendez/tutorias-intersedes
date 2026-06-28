@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import {
   MessageSquare,
   CalendarCheck,
   CalendarX,
+  History,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,10 +33,15 @@ import toast from "react-hot-toast";
 import { axiosInstance } from "@/utils/axios";
 
 export function MisInscripciones() {
-  const navigate = useNavigate();
   const [inscripciones, setInscripciones] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [historial, setHistorial] = useState([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const [loading, setLoading] = useState(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelTutoriaId, setCancelTutoriaId] = useState(null);
+  const [reactivarDialogOpen, setReactivarDialogOpen] = useState(false);
+  const [reactivarTutoriaId, setReactivarTutoriaId] = useState(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [selectedInscripcion, setSelectedInscripcion] = useState(null);
   const [feedbackData, setFeedbackData] = useState({
@@ -44,7 +50,6 @@ export function MisInscripciones() {
     es_anonimo: false,
   });
 
-  // 1. Carga de datos: reemplaza al Server Component (page.tsx)
   const cargarInscripciones = useCallback(async () => {
     setCargando(true);
     try {
@@ -57,32 +62,42 @@ export function MisInscripciones() {
     }
   }, []);
 
+  const cargarHistorial = useCallback(async () => {
+    setCargandoHistorial(true);
+    try {
+      const res = await axiosInstance.get("/inscripciones/historial");
+      setHistorial(res.data);
+    } catch {
+      toast.error("No se pudo cargar el historial");
+    } finally {
+      setCargandoHistorial(false);
+    }
+  }, []);
+
   useEffect(() => {
     cargarInscripciones();
-  }, [cargarInscripciones]);
+    cargarHistorial();
+  }, [cargarInscripciones, cargarHistorial]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const proximasInscripciones = inscripciones.filter(
-    (i) => i.status === "inscripto" && new Date(i.tutoria.fecha) >= today
-  );
-
-  const pasadasInscripciones = inscripciones.filter(
-    (i) =>
-      i.status === "asistio" ||
-      (i.status === "inscripto" && new Date(i.tutoria.fecha) < today)
+  const activasInscripciones = inscripciones.filter(
+    (i) => i.status === "ACTIVA"
   );
 
   const canceladasInscripciones = inscripciones.filter(
-    (i) => i.status === "cancelada" || i.status === "no_asistio"
+    (i) => i.status === "CANCELADA"
   );
 
-  // 2. Cancelar: ahora llama a tu API en vez de Supabase directo
-  const handleCancelar = async (inscripcionId) => {
-    setLoading(inscripcionId);
+  const openCancelDialog = (tutoriaId) => {
+    setCancelTutoriaId(tutoriaId);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelTutoriaId) return;
+    setLoading(cancelTutoriaId);
+    setCancelDialogOpen(false);
     try {
-      await axiosInstance.put(`/inscripciones/tutoria/${inscripcionId}/cancelar`);
+      await axiosInstance.put(`/inscripciones/tutoria/${cancelTutoriaId}/cancelar`);
 
       toast.success("Inscripción cancelada");
       await cargarInscripciones();
@@ -90,10 +105,36 @@ export function MisInscripciones() {
       toast.error("Error al cancelar la inscripción");
     } finally {
       setLoading(null);
+      setCancelTutoriaId(null);
     }
   };
 
-  // 3. Feedback: POST a tu API
+  const openReactivarDialog = (tutoriaId) => {
+    setReactivarTutoriaId(tutoriaId);
+    setReactivarDialogOpen(true);
+  };
+
+  const confirmReactivar = async () => {
+    if (!reactivarTutoriaId) return;
+    setLoading(reactivarTutoriaId);
+    setReactivarDialogOpen(false);
+    try {
+      await axiosInstance.post(`/inscripciones/tutoria/${reactivarTutoriaId}`);
+
+      toast.success("Inscripción reactivada");
+      await cargarInscripciones();
+    } catch (error) {
+      if (error.response?.status === 409) {
+        toast.error("No hay cupos disponibles");
+        return;
+      }
+      toast.error("Error al reactivar la inscripción");
+    } finally {
+      setLoading(null);
+      setReactivarTutoriaId(null);
+    }
+  };
+
   const handleSubmitFeedback = async () => {
     if (!selectedInscripcion) return;
 
@@ -127,143 +168,87 @@ export function MisInscripciones() {
     setFeedbackDialogOpen(true);
   };
 
-  const getStatusBadge = (status, fecha) => {
-    const isPast = new Date(fecha) < today;
-    if (status === "inscripto" && !isPast) {
-      return <Badge className="bg-green-600">Confirmada</Badge>;
+  const statusBadge = (status) => {
+    if (status === "ACTIVA") {
+      return <Badge className="bg-green-600">Activa</Badge>;
     }
-    if (status === "inscripto" && isPast) {
-      return <Badge variant="secondary">Pendiente feedback</Badge>;
-    }
-    if (status === "asistio") {
-      return <Badge className="bg-blue-600">Asistió</Badge>;
-    }
-    if (status === "cancelada") {
+    if (status === "CANCELADA") {
       return <Badge variant="destructive">Cancelada</Badge>;
-    }
-    if (status === "no_asistio") {
-      return <Badge variant="destructive">No asistió</Badge>;
     }
     return <Badge variant="outline">{status}</Badge>;
   };
 
-  const InscripcionCard = ({ inscripcion, showActions = false }) => {
-    const hasFeedback = inscripcion.feedback && inscripcion.feedback.length > 0;
-    const isPast = new Date(inscripcion.tutoria.fecha) < today;
-    const canLeaveFeedback =
-      isPast && !hasFeedback && inscripcion.status !== "cancelada";
-
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="font-medium">{inscripcion.tutoria.titulo}</h4>
-                {getStatusBadge(inscripcion.status, inscripcion.tutoria.fecha)}
-                <Badge
-                  variant={
-                    inscripcion.tutoria.modalidad === "virtual"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {inscripcion.tutoria.modalidad === "virtual" ? (
-                    <Video className="h-3 w-3 mr-1" />
-                  ) : (
-                    <MapPin className="h-3 w-3 mr-1" />
-                  )}
-                  {inscripcion.tutoria.modalidad}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {inscripcion.tutoria.materia.nombre} -{" "}
-                {inscripcion.tutoria.tutor.nombre}{" "}
-                {inscripcion.tutoria.tutor.apellido}
-              </p>
+  const InscripcionCard = ({ inscripcion, showActions = false }) => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-medium">{inscripcion.nombreTutoria}</h4>
+              {statusBadge(inscripcion.status)}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {inscripcion.nombreTutor}
+            </p>
+            {inscripcion.fechaInscripcion && (
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(inscripcion.tutoria.fecha), "d 'de' MMMM, yyyy", {
+                  Inscripto el{" "}
+                  {format(new Date(inscripcion.fechaInscripcion), "d 'de' MMMM, yyyy", {
                     locale: es,
                   })}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {inscripcion.tutoria.hora_inicio.slice(0, 5)} -{" "}
-                  {inscripcion.tutoria.hora_fin.slice(0, 5)}
-                </span>
-              </div>
-              {inscripcion.tutoria.modalidad === "virtual" &&
-                inscripcion.tutoria.link_virtual && (
-                  <a
-                    href={inscripcion.tutoria.link_virtual}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Enlace a la reunión virtual
-                  </a>
-                )}
-              {inscripcion.tutoria.modalidad === "presencial" &&
-                inscripcion.tutoria.ubicacion && (
-                  <p className="text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3 inline mr-1" />
-                    {inscripcion.tutoria.ubicacion}
-                  </p>
-                )}
-              {hasFeedback && (
-                <div className="flex items-center gap-1 mt-2">
-                  <span className="text-sm text-muted-foreground">
-                    Tu calificación:
-                  </span>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < (inscripcion.feedback?.[0]?.calificacion || 0)
-                          ? "fill-primary text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-            {showActions && (
-              <div className="flex gap-2 sm:flex-col">
-                {!isPast && inscripcion.status === "inscripto" && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleCancelar(inscripcion.id)}
-                    disabled={loading === inscripcion.id}
-                  >
-                    {loading === inscripcion.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Cancelar"
-                    )}
-                  </Button>
-                )}
-                {canLeaveFeedback && (
-                  <Button size="sm" onClick={() => openFeedbackDialog(inscripcion.id)}>
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    Dejar feedback
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/dashboard/tutorias/${inscripcion.tutoria.id}`}>
-                    Ver detalles
-                  </Link>
-                </Button>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
+          {showActions && (
+            <div className="flex gap-2 sm:flex-col">
+              {inscripcion.status === "ACTIVA" && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => openCancelDialog(inscripcion.tutoriaId)}
+                  disabled={loading === inscripcion.tutoriaId}
+                >
+                  {loading === inscripcion.tutoriaId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Cancelar"
+                  )}
+                </Button>
+              )}
+              {inscripcion.status === "CANCELADA" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openReactivarDialog(inscripcion.tutoriaId)}
+                  disabled={loading === inscripcion.tutoriaId}
+                >
+                  {loading === inscripcion.tutoriaId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Reactivar"
+                  )}
+                </Button>
+              )}
+              {inscripcion.status === "ACTIVA" && (
+                <Button size="sm" onClick={() => openFeedbackDialog(inscripcion.id)}>
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  Dejar feedback
+                </Button>
+              )}
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/dashboard/tutorias/${inscripcion.tutoriaId}`}>
+                  Ver detalles
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   if (cargando) {
     return (
@@ -282,25 +267,25 @@ export function MisInscripciones() {
         </p>
       </div>
 
-      <Tabs defaultValue="proximas" className="space-y-4">
+      <Tabs defaultValue="activas" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="proximas" className="gap-2">
+          <TabsTrigger value="activas" className="gap-2">
             <CalendarCheck className="h-4 w-4" />
-            Próximas ({proximasInscripciones.length})
-          </TabsTrigger>
-          <TabsTrigger value="pasadas" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Pasadas ({pasadasInscripciones.length})
+            Activas ({activasInscripciones.length})
           </TabsTrigger>
           <TabsTrigger value="canceladas" className="gap-2">
             <CalendarX className="h-4 w-4" />
             Canceladas ({canceladasInscripciones.length})
           </TabsTrigger>
+          <TabsTrigger value="historial" className="gap-2">
+            <History className="h-4 w-4" />
+            Historial ({historial.length})
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="proximas" className="space-y-4">
-          {proximasInscripciones.length > 0 ? (
-            proximasInscripciones.map((inscripcion) => (
+        <TabsContent value="activas" className="space-y-4">
+          {activasInscripciones.length > 0 ? (
+            activasInscripciones.map((inscripcion) => (
               <InscripcionCard key={inscripcion.id} inscripcion={inscripcion} showActions />
             ))
           ) : (
@@ -308,7 +293,7 @@ export function MisInscripciones() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <CalendarCheck className="h-16 w-16 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  No tienes inscripciones próximas
+                  No tienes inscripciones activas
                 </h3>
                 <p className="text-muted-foreground text-center mb-4">
                   Explora las tutorías disponibles y anótate
@@ -321,30 +306,10 @@ export function MisInscripciones() {
           )}
         </TabsContent>
 
-        <TabsContent value="pasadas" className="space-y-4">
-          {pasadasInscripciones.length > 0 ? (
-            pasadasInscripciones.map((inscripcion) => (
-              <InscripcionCard key={inscripcion.id} inscripcion={inscripcion} showActions />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  No tienes tutorías pasadas
-                </h3>
-                <p className="text-muted-foreground text-center">
-                  Aquí aparecerán las tutorías a las que asististe
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
         <TabsContent value="canceladas" className="space-y-4">
           {canceladasInscripciones.length > 0 ? (
             canceladasInscripciones.map((inscripcion) => (
-              <InscripcionCard key={inscripcion.id} inscripcion={inscripcion} />
+              <InscripcionCard key={inscripcion.id} inscripcion={inscripcion} showActions />
             ))
           ) : (
             <Card>
@@ -360,9 +325,107 @@ export function MisInscripciones() {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="historial" className="space-y-4">
+          {cargandoHistorial ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : historial.length > 0 ? (
+            historial.map((item) => (
+              <Card key={item.inscripcionId}>
+                <CardContent className="pt-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-medium">{item.nombreTutoria}</h4>
+                        <Badge variant="outline">
+                          {item.modalidad === "VIRTUAL" ? (
+                            <Video className="h-3 w-3 mr-1" />
+                          ) : (
+                            <MapPin className="h-3 w-3 mr-1" />
+                          )}
+                          {item.modalidad}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {item.materiaNombre} - {item.nombreTutor}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {format(new Date(item.fecha), "d 'de' MMMM, yyyy", {
+                            locale: es,
+                          })}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {item.horaInicio.slice(0, 5)} - {item.horaFin.slice(0, 5)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {item.sede}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <History className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-medium mb-2">
+                  No tienes tutorías en el historial
+                </h3>
+                <p className="text-muted-foreground text-center">
+                  Aquí aparecerán las tutorías finalizadas a las que te inscribiste
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
-      {/* Feedback Dialog */}
+      <Dialog open={reactivarDialogOpen} onOpenChange={setReactivarDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reactivar inscripción</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro que deseas reactivar esta inscripción?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReactivarDialogOpen(false)}>
+              No, mantener
+            </Button>
+            <Button variant="default" onClick={confirmReactivar}>
+              Sí, reactivar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar inscripción</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro que deseas cancelar esta inscripción?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+              No, mantener
+            </Button>
+            <Button variant="destructive" onClick={confirmCancel}>
+              Sí, cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
         <DialogContent>
           <DialogHeader>
