@@ -2,6 +2,9 @@ package com.example.tutorias.service;
 
 import com.example.tutorias.repository.TutorRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,7 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     
     private final TutorRepository tutorRepository;
 
-	 @Autowired
+	@Autowired
     private AlumnoRepository alumnoRepository;
     
     @Autowired
@@ -43,6 +46,9 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
 
     @Autowired
     private PostulacionTutorRepository postulacionTutorRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 	 PostulacionTutorServiceImp(TutorRepository tutorRepository) {
 		this.tutorRepository = tutorRepository;
@@ -141,12 +147,30 @@ public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEsta
     postulacion.setReviewedAt(LocalDateTime.now());
     postulacionTutorRepository.save(postulacion);
 
-    if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
-        Long tutorId = postulacion.getPostulante().getId();
+ if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
+        Alumno alumno = postulacion.getPostulante();
         Materia materia = postulacion.getMateria();
 
-        Tutor tutor = tutorRepository.findById(tutorId)
-                .orElseThrow(() -> new ReglaNegocioException("No existe un Tutor registrado para este postulante."));
+        boolean yaEsTutor = tutorRepository.findById(alumno.getId()).isPresent();
+
+        if (!yaEsTutor) {
+            entityManager.createNativeQuery(
+                "INSERT INTO tutor (id) VALUES (:id)"
+            )
+            .setParameter("id", alumno.getId())
+            .executeUpdate();
+
+            entityManager.createNativeQuery(
+                "UPDATE persona SET dtype = 'Tutor' WHERE id = :id"
+            )
+            .setParameter("id", alumno.getId())
+            .executeUpdate();
+
+            entityManager.clear();
+        }
+
+        Tutor tutor = tutorRepository.findById(alumno.getId())
+                .orElseThrow(() -> new ReglaNegocioException("Error al crear el tutor."));
 
         tutor.getMaterias().add(materia);
         tutorRepository.save(tutor);
