@@ -1,6 +1,7 @@
 package com.example.tutorias.entity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,6 +35,9 @@ public class Tutoria {
     private Integer cupo;
     private String ubicacion;
     private String linkVirtual;
+   
+   
+    @Column(name = "link_drive")
     private String linkDrive;
 
     @Enumerated(EnumType.STRING)
