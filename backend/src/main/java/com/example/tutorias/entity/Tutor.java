@@ -24,7 +24,7 @@ public class Tutor extends Persona {
     private Boolean estado;
 
     // 
-    @Column(nullable = false, unique = true) 
+    @Column(nullable = true, unique = true) 
     private String cuit;
 
     // La relación responde a que un tutor es aceptado por un administrador, y un administrador puede aceptar a varios tutores, por lo que se establece una relación ManyToOne
