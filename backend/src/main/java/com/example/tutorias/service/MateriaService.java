@@ -43,4 +43,37 @@ public class MateriaService {
                 .map(MateriaResponse::from)
                 .toList();
     }
+
+    public MateriaResponse crearMateria(String nombre) {
+        if (materiaRepository.existsByNombre(nombre)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La materia ya existe");
+        }
+
+        Materia materia = new Materia();
+        materia.setNombre(nombre);
+        materiaRepository.save(materia);
+
+        return MateriaResponse.from(materia);
+    }
+
+    public MateriaResponse actualizarMateria(Long id, String nombre) {
+        Materia materia = materiaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Materia no encontrada"));
+
+        if (materiaRepository.existsByNombre(nombre)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La materia ya existe");
+        }
+
+        materia.setNombre(nombre);
+        materiaRepository.save(materia);
+
+        return MateriaResponse.from(materia);
+    }    
+
+    public void eliminarMateria(Long id) {
+        Materia materia = materiaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Materia no encontrada"));
+
+        materiaRepository.delete(materia);
+    }
 }
