@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,4 +87,26 @@ public class TutoriaController {
         List<TutoriaResponse> resultados = tutoriaService.buscarTutoriasConFiltros(materia, sede, modalidad);
         return ResponseEntity.ok(resultados);
     }
+
+    @PostMapping("/{id}/agregar-link")
+    @PreAuthorize("hasRole('TUTOR') or hasRole('ADMIN')")
+    public ResponseEntity<TutoriaResponse> agregarLinkDrive(@PathVariable Long id, @RequestBody String linkDrive) {
+        TutoriaResponse response = tutoriaService.agregarLink(id, linkDrive);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/actualizar-link")
+    @PreAuthorize("hasRole('TUTOR') or hasRole('ADMIN')")
+    public ResponseEntity<TutoriaResponse> actualizarLink(@PathVariable Long id, @RequestBody String link) {
+        TutoriaResponse response = tutoriaService.actualizarLink(id, link);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/eliminar-link")
+    @PreAuthorize("hasRole('TUTOR') or hasRole('ADMIN')")
+    public ResponseEntity<TutoriaResponse> eliminarLink(@PathVariable Long id) {
+        TutoriaResponse response = tutoriaService.eliminarLink(id);
+        return ResponseEntity.ok(response);
+    }
+    
 }
