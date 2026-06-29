@@ -150,6 +150,7 @@ public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEsta
  if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
         Alumno alumno = postulacion.getPostulante();
         Materia materia = postulacion.getMateria();
+        
 
         boolean yaEsTutor = tutorRepository.findById(alumno.getId()).isPresent();
 
@@ -161,7 +162,7 @@ public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEsta
             .executeUpdate();
 
             entityManager.createNativeQuery(
-                "UPDATE persona SET dtype = 'Tutor' WHERE id = :id"
+                "UPDATE persona SET dtype = 'Tutor', role = 'TUTOR' WHERE id = :id"
             )
             .setParameter("id", alumno.getId())
             .executeUpdate();
