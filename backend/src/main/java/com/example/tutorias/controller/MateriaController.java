@@ -4,6 +4,7 @@ import com.example.tutorias.dto.materia.CreateMateriaRequest;
 import com.example.tutorias.dto.materia.MateriaResponse;
 import com.example.tutorias.service.MateriaService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,16 +37,19 @@ public class MateriaController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public MateriaResponse crearMateria(@RequestBody CreateMateriaRequest request) {
         return materiaService.crearMateria(request.getNombre());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public MateriaResponse actualizarMateria(@PathVariable Long id, @RequestBody CreateMateriaRequest request) {
         return materiaService.actualizarMateria(id, request.getNombre());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void eliminarMateria(@PathVariable Long id) {
         materiaService.eliminarMateria(id);
     }
