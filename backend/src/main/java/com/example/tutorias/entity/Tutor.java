@@ -17,7 +17,7 @@ import java.util.Set;
 @DiscriminatorValue("Tutor")
 public class Tutor extends Persona {
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String titulo;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
