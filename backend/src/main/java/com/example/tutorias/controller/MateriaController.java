@@ -40,7 +40,7 @@ public class MateriaController {
     @PreAuthorize("hasRole('ADMIN')")
     public MateriaResponse crearMateria(@RequestBody CreateMateriaRequest request) {
         return materiaService.crearMateria(request.getNombre());
-    }
+    }   
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
