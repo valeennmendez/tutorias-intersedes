@@ -34,7 +34,7 @@ public class AdminPanelService {
 
     @Transactional(readOnly = true)
     public Page<TutorAdminDTO> obtenerTutoresAprobados(Pageable pageable) {
-        return tutorRepository.findByEstadoTrue(pageable)
+        return tutorRepository.findByEstadoTutorTrue(pageable)
                 .map(TutorAdminDTO::from);
     }
     

@@ -53,6 +53,7 @@ public class TutoriaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor no encontrado"));
 
         if (!Boolean.TRUE.equals(tutor.getEstado())) {
+            System.out.println("🚩 El tutor con ID " + tutor.getId() + " no está aprobado. Estado: " + tutor.getEstado());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tutor no esta aprobado");
         }
 

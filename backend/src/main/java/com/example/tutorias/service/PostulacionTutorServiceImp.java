@@ -18,6 +18,7 @@ import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Persona;
 import com.example.tutorias.entity.PostulacionTutor;
 import com.example.tutorias.entity.PostulacionTutorEstado;
+import com.example.tutorias.entity.Role;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.AlumnoRepository;
@@ -26,6 +27,7 @@ import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.PostulacionTutorRepository;
 import com.example.tutorias.dto.postulaciones.PostulacionTutorResponseDTO;
 import java.time.LocalDateTime;
+import com.example.tutorias.util.NotificacionService;
 
 @Service
 public class PostulacionTutorServiceImp implements PostulacionTutorService {
@@ -46,6 +48,9 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
 
     @Autowired
     private PostulacionTutorRepository postulacionTutorRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -130,52 +135,85 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
         return postulacion.getPdfPath();
     }
 
-@Override
-@Transactional
-public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
-    PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
-            .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
+    @Override
+    @Transactional
+    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
+        PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
+                .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
 
-    if (adminId != null) {
-        Persona administrador = personaRepository.findById(adminId)
-                .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
-        postulacion.setRevisor(administrador);
-    }
-
-    postulacion.setEstado(nuevoEstado);
-    postulacion.setAdminComentario(adminComentario);
-    postulacion.setReviewedAt(LocalDateTime.now());
-    postulacionTutorRepository.save(postulacion);
-
- if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
-        Alumno alumno = postulacion.getPostulante();
-        Materia materia = postulacion.getMateria();
-
-        boolean yaEsTutor = tutorRepository.findById(alumno.getId()).isPresent();
-
-        if (!yaEsTutor) {
-            entityManager.createNativeQuery(
-                "INSERT INTO tutor (id) VALUES (:id)"
-            )
-            .setParameter("id", alumno.getId())
-            .executeUpdate();
-
-            entityManager.createNativeQuery(
-                "UPDATE persona SET dtype = 'Tutor' WHERE id = :id"
-            )
-            .setParameter("id", alumno.getId())
-            .executeUpdate();
-
-            entityManager.clear();
+        if (adminId != null) {
+            Persona administrador = personaRepository.findById(adminId)
+                    .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
+            postulacion.setRevisor(administrador);
         }
+        //actualizamos datos de la postulación
+        postulacion.setEstado(nuevoEstado);
+        postulacion.setAdminComentario(adminComentario);
+        postulacion.setReviewedAt(LocalDateTime.now());
+        postulacionTutorRepository.save(postulacion);
 
-        Tutor tutor = tutorRepository.findById(alumno.getId())
-                .orElseThrow(() -> new ReglaNegocioException("Error al crear el tutor."));
+        System.out.println("🚩ATENCIÓN: El estado que llegó al Service es: " + nuevoEstado);
 
-        tutor.getMaterias().add(materia);
-        tutorRepository.save(tutor);
+        //si la postulación es aprobada, promovemos al alumno a tutor y le asignamos la materia
+        if (PostulacionTutorEstado.APROBADA.equals(nuevoEstado)) {
+            Alumno alumnoParaPromover = postulacion.getPostulante();
+            Materia materia = postulacion.getMateria();
+            
+            //tambien guardamos datos para el mail   antes del clear 
+            String emailUsuario = alumnoParaPromover.getEmail();
+            String nombreMateria = materia.getNombre();
+
+            // Le cambiamos el rol al objeto en memoria para que, si Hibernate intenta 
+            // sobreescribir la base de datos después, lo haga con el valor correcto.
+            alumnoParaPromover.setRole(Role.TUTOR); 
+
+            boolean yaEsTutor = tutorRepository.findById(alumnoParaPromover.getId()).isPresent();
+
+            if (!yaEsTutor) {
+                entityManager.createNativeQuery( //crea un registro vacío en la tabla tutor para un alumno que se está promoviendo a tutor, y además es una FK verifica que exista el mismo id en la table persona.
+                "INSERT INTO tutor (id, administrador_id) VALUES (:id, :adminId)"
+                )
+                .setParameter("id", alumnoParaPromover.getId()) //vamos a tener el mismo id en la tabla persona, alumno y tutor, por la herencia y cómo resuelve el triple join
+                .setParameter("adminId", adminId)
+                .executeUpdate();
+
+                entityManager.createNativeQuery(
+                    "UPDATE persona SET dtype = 'Tutor' WHERE id = :id"
+                )
+                .setParameter("id", alumnoParaPromover.getId())
+                .executeUpdate();
+
+                entityManager.flush();  //agregamos flush para asegurarnos de que los cambios se escriban en la base de datos antes de continuar
+                entityManager.clear();
+            }
+            //recuperamos el tutor recién creado o existente, porque ya actualizamos el dtype a 'Tutor' y ahora podemos buscarlo como tal
+            Tutor tutor = tutorRepository.findById(alumnoParaPromover.getId())
+                    .orElseThrow(() -> new ReglaNegocioException("Error al crear el tutor."));
+
+            // Como la 'materia' quedó desconectada por el clear(), 
+            // usamos merge() para volver a atarla a la sesión activa antes de guardarla.
+            Materia materiaActiva = entityManager.merge(materia);
+
+            //pequeña validación para evitar duplicados en la relación ManyToMany entre tutor y materia
+            if (!tutor.getMaterias().contains(materiaActiva)) {
+            tutor.getMaterias().add(materiaActiva);
+            tutorRepository.save(tutor);
+            // Enviamos la notificación de éxito
+            notificacionService.enviarNotificacionAprobacion(emailUsuario, nombreMateria);
+        }
+        } else if (PostulacionTutorEstado.RECHAZADA.equals(nuevoEstado)) { //mejoramos el matcheo
+            Alumno alumnoParaRechazo = postulacion.getPostulante();
+            Materia materiaParaRechazo = postulacion.getMateria();
+
+            System.out.println("🚩 ¡ENTRÓ AL BLOQUE DE RECHAZO!");
+            System.out.println("🚩 Intentando mandar mail a: " + alumnoParaRechazo.getEmail());
+
+            String motivo = adminComentario != null ? adminComentario : "No cumples con los requisitos actuales.";
+            notificacionService.enviarNotificacionRechazo(alumnoParaRechazo.getEmail(), materiaParaRechazo.getNombre(), motivo);
+
+            System.out.println("🚩 ¡MAIL ENVIADO AL SERVIDOR DE GOOGLE!");
+        }
     }
-}
 
     @Override
     @Transactional

@@ -78,7 +78,7 @@ public class PostulacionTutorController {
     ) {
         Long adminId = userDetails.getId();
         postulacionTutorService.actualizarEstadoPostulacion(postulacionId, estado, adminId, comentario);
-        return ResponseEntity.ok("Estado de postulación actualizado");
+        return ResponseEntity.ok("Estado de postulación actualizado a: " + estado);
     }
 
     @GetMapping("/{id}/pdf")

@@ -15,13 +15,13 @@ import java.util.Set;
 @Entity
 @Table(name = "Tutor")
 @DiscriminatorValue("Tutor")
-public class Tutor extends Persona {
+public class Tutor extends Alumno { //IMPORTANTE: La clase Tutor hereda de Alumno, lo que significa que un tutor es un tipo específico de alumno. Esto permite que un tutor tenga todas las propiedades y comportamientos de un alumno, además de sus propias características específicas.
 
     @Column(nullable = true)
     private String titulo;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
-    private Boolean estado;
+    private Boolean estadoTutor;
 
     // 
     @Column(nullable = true, unique = true) 
