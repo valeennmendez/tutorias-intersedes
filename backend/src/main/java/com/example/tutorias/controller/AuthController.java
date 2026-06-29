@@ -3,6 +3,7 @@ package com.example.tutorias.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.tutorias.dto.auth.CrearAdminRequestDTO;
 import com.example.tutorias.dto.auth.LoginRequestDTO;
 import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
@@ -34,6 +35,12 @@ public class AuthController {
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegistroRequestDTO registroRequest) {
         authService.registerUser(registroRequest);
         return ResponseEntity.ok("Usuario registrado exitosamente");
+    }
+
+    @PostMapping("/create-admin")
+    public ResponseEntity<String> createAdmin(@Valid @RequestBody CrearAdminRequestDTO crearAdminRequest) {
+        authService.crearAdmin(crearAdminRequest);
+        return ResponseEntity.ok("Administrador creado exitosamente");
     }
 
     @PostMapping("/login")

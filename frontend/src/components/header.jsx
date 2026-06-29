@@ -13,7 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, Shield, ClipboardList, Bell, BellRing, Loader2 } from "lucide-react";
+import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, ClipboardList, Bell, BellRing, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuthStore } from "../store/auth.store";
@@ -48,11 +48,10 @@ export function DashboardHeader({ profile }) {
 		}
 	};
 
-	const { notificaciones, notificacionesLoading, notificacionesLeidas, notificacionesVersion, fetchNotificaciones, marcarLeidas } = useAvisosStore();
+	const { notificaciones, notificacionesLoading, notificacionesLeidas, notificacionesVersion, fetchNotificaciones, marcarLeidas } =
+		useAvisosStore();
 
-	const notifsOrdenadas = [...notificaciones].sort(
-		(a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)
-	);
+	const notifsOrdenadas = [...notificaciones].sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 	const noLeidas = notificaciones.filter((n) => !notificacionesLeidas.includes(n.id));
 	const noLeidasCount = noLeidas.length;
 
@@ -70,11 +69,6 @@ export function DashboardHeader({ profile }) {
 		navItems.push({ href: "/dashboard/gestionar-avisos", label: "Gestionar Avisos", icon: Bell });
 	}
 
-	if (profile.role === "admin") {
-		navItems.push({ href: "/admin", label: "Administración", icon: Shield });
-		navItems.push({ href: "/dashboard/bandeja-avisos", label: "Bandeja de Avisos", icon: Bell });
-	}
-
 	if (profile.role === "alumno") {
 		navItems.push({ href: "/dashboard/mis-inscripciones", label: "Mis Inscripciones", icon: Calendar });
 		navItems.push({ href: "/dashboard/bandeja-avisos", label: "Bandeja de Avisos", icon: Bell });
@@ -89,29 +83,35 @@ export function DashboardHeader({ profile }) {
 					<span className="hidden font-semibold lg:inline-block text-foreground">Tutorías</span>
 				</Link>
 
-				<nav className="hidden md:flex items-center gap-1">
-					{navItems.map((item) => {
-						const isActive = pathname === item.href;
-						return (
-							<Link
-								key={item.href}
-								to={item.href}
-								className={cn(
-									buttonVariants({ variant: isActive ? "secondary" : "ghost", size: "sm" }),
-									"inline-flex items-center gap-2",
-									isActive ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-sky-100 hover:text-sky-900",
-								)}
-							>
-								<item.icon className="h-4 w-4" />
-								{item.label}
-							</Link>
-						);
-					})}
-				</nav>
+				{profile.role !== "admin" && (
+					<nav className="hidden md:flex items-center gap-1">
+						{navItems.map((item) => {
+							const isActive = pathname === item.href;
+							return (
+								<Link
+									key={item.href}
+									to={item.href}
+									className={cn(
+										buttonVariants({ variant: isActive ? "secondary" : "ghost", size: "sm" }),
+										"inline-flex items-center gap-2",
+										isActive ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-sky-100 hover:text-sky-900",
+									)}
+								>
+									<item.icon className="h-4 w-4" />
+									{item.label}
+								</Link>
+							);
+						})}
+					</nav>
+				)}
 
 				<div className="flex items-center gap-2">
 					{/* Notification Bell */}
-					<DropdownMenu onOpenChange={(open) => { if (open) marcarLeidas(notificaciones.map((n) => n.id)); }}>
+					<DropdownMenu
+						onOpenChange={(open) => {
+							if (open) marcarLeidas(notificaciones.map((n) => n.id));
+						}}
+					>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" size="icon" className="relative">
 								{notificacionesLoading ? (
@@ -148,17 +148,12 @@ export function DashboardHeader({ profile }) {
 											const leido = notificacionesLeidas.includes(aviso.id);
 											return (
 												<DropdownMenuItem key={aviso.id} asChild className="cursor-pointer">
-													<Link
-													to="/dashboard/bandeja-avisos"
-													className="flex flex-col items-start gap-1 px-3 py-2 relative"
-													>
-														{!leido && (
-															<span className="absolute left-1 top-3 h-2 w-2 rounded-full bg-blue-500" />
-														)}
-														<span className={"text-sm font-medium leading-tight" + (!leido ? " ml-3" : "")}>
-															{aviso.titulo}
+													<Link to="/dashboard/bandeja-avisos" className="flex flex-col items-start gap-1 px-3 py-2 relative">
+														{!leido && <span className="absolute left-1 top-3 h-2 w-2 rounded-full bg-blue-500" />}
+														<span className={"text-sm font-medium leading-tight" + (!leido ? " ml-3" : "")}>{aviso.titulo}</span>
+														<span className={"text-xs text-muted-foreground line-clamp-1" + (!leido ? " ml-3" : "")}>
+															{aviso.nombreTutoria}
 														</span>
-														<span className={"text-xs text-muted-foreground line-clamp-1" + (!leido ? " ml-3" : "")}>{aviso.nombreTutoria}</span>
 														<span className={"text-[10px] text-muted-foreground/70" + (!leido ? " ml-3" : "")}>
 															{formatDistanceToNow(new Date(aviso.fechaCreacion), { addSuffix: true, locale: es })}
 														</span>
@@ -169,10 +164,7 @@ export function DashboardHeader({ profile }) {
 									</div>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem asChild>
-										<Link
-											to="/dashboard/bandeja-avisos"
-											className="justify-center text-sm font-medium text-primary cursor-pointer"
-										>
+										<Link to="/dashboard/bandeja-avisos" className="justify-center text-sm font-medium text-primary cursor-pointer">
 											Ver todos los avisos
 										</Link>
 									</DropdownMenuItem>
@@ -218,37 +210,38 @@ export function DashboardHeader({ profile }) {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
-
-					<Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-						<SheetTrigger asChild className="md:hidden">
-							<Button variant="ghost" size="icon">
-								<Menu className="h-5 w-5" />
-								<span className="sr-only">Abrir menú</span>
-							</Button>
-						</SheetTrigger>
-						<SheetContent side="right" className="w-64">
-							<nav className="flex flex-col gap-2 mt-8">
-								{navItems.map((item) => {
-									const isActive = pathname === item.href;
-									return (
-										<Link
-											key={item.href}
-											to={item.href}
-											onClick={() => setMobileMenuOpen(false)}
-											className={cn(
-												buttonVariants({ variant: isActive ? "secondary" : "ghost" }),
-												"justify-start inline-flex items-center gap-3",
-												isActive ? "bg-primary/10 text-primary" : "hover:bg-sky-100 hover:text-sky-900",
-											)}
-										>
-											<item.icon className="h-4 w-4" />
-											{item.label}
-										</Link>
-									);
-								})}
-							</nav>
-						</SheetContent>
-					</Sheet>
+					{profile.role !== "admin" && (
+						<Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+							<SheetTrigger asChild className="md:hidden">
+								<Button variant="ghost" size="icon">
+									<Menu className="h-5 w-5" />
+									<span className="sr-only">Abrir menú</span>
+								</Button>
+							</SheetTrigger>
+							<SheetContent side="right" className="w-64">
+								<nav className="flex flex-col gap-2 mt-8">
+									{navItems.map((item) => {
+										const isActive = pathname === item.href;
+										return (
+											<Link
+												key={item.href}
+												to={item.href}
+												onClick={() => setMobileMenuOpen(false)}
+												className={cn(
+													buttonVariants({ variant: isActive ? "secondary" : "ghost" }),
+													"justify-start inline-flex items-center gap-3",
+													isActive ? "bg-primary/10 text-primary" : "hover:bg-sky-100 hover:text-sky-900",
+												)}
+											>
+												<item.icon className="h-4 w-4" />
+												{item.label}
+											</Link>
+										);
+									})}
+								</nav>
+							</SheetContent>
+						</Sheet>
+					)}
 				</div>
 			</div>
 		</header>

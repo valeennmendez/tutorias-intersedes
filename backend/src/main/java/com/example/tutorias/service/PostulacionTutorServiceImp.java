@@ -1,5 +1,8 @@
 package com.example.tutorias.service;
 
+import com.example.tutorias.repository.TutorRepository;
+
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,18 +12,24 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.tutorias.entity.Alumno;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Persona;
 import com.example.tutorias.entity.PostulacionTutor;
 import com.example.tutorias.entity.PostulacionTutorEstado;
+import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.AlumnoRepository;
 import com.example.tutorias.repository.MateriaRepository;
+import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.PostulacionTutorRepository;
 import com.example.tutorias.dto.postulaciones.PostulacionTutorResponseDTO;
+import java.time.LocalDateTime;
 
 @Service
 public class PostulacionTutorServiceImp implements PostulacionTutorService {
     
-    @Autowired
+    private final TutorRepository tutorRepository;
+
+	 @Autowired
     private AlumnoRepository alumnoRepository;
     
     @Autowired
@@ -30,7 +39,14 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     private FileStorageService fileStorageService;
 
     @Autowired
+    private PersonaRepository personaRepository;
+
+    @Autowired
     private PostulacionTutorRepository postulacionTutorRepository;
+
+	 PostulacionTutorServiceImp(TutorRepository tutorRepository) {
+		this.tutorRepository = tutorRepository;
+	 }
 
     @Override
     @Transactional
@@ -92,14 +108,50 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     }
 
     @Override
-    @Transactional
-    public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado) {
+    @Transactional(readOnly = true)
+    public List<PostulacionTutorResponseDTO> obtenerTodasPostulaciones() {
+        return postulacionTutorRepository.findAll().stream()
+                .sorted(Comparator.comparing(PostulacionTutor::getCreatedAt).reversed())
+                .map(PostulacionTutorResponseDTO::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String obtenerRutaPdfPostulacion(Long postulacionId) {
         PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
                 .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
-
-        postulacion.setEstado(nuevoEstado);
-        postulacionTutorRepository.save(postulacion);
+        return postulacion.getPdfPath();
     }
+
+@Override
+@Transactional
+public void actualizarEstadoPostulacion(Long postulacionId, PostulacionTutorEstado nuevoEstado, Long adminId, String adminComentario) {
+    PostulacionTutor postulacion = postulacionTutorRepository.findById(postulacionId)
+            .orElseThrow(() -> new ReglaNegocioException("La postulación no existe."));
+
+    if (adminId != null) {
+        Persona administrador = personaRepository.findById(adminId)
+                .orElseThrow(() -> new ReglaNegocioException("El administrador no existe."));
+        postulacion.setRevisor(administrador);
+    }
+
+    postulacion.setEstado(nuevoEstado);
+    postulacion.setAdminComentario(adminComentario);
+    postulacion.setReviewedAt(LocalDateTime.now());
+    postulacionTutorRepository.save(postulacion);
+
+    if (nuevoEstado == PostulacionTutorEstado.APROBADA) {
+        Long tutorId = postulacion.getPostulante().getId();
+        Materia materia = postulacion.getMateria();
+
+        Tutor tutor = tutorRepository.findById(tutorId)
+                .orElseThrow(() -> new ReglaNegocioException("No existe un Tutor registrado para este postulante."));
+
+        tutor.getMaterias().add(materia);
+        tutorRepository.save(tutor);
+    }
+}
 
     @Override
     @Transactional

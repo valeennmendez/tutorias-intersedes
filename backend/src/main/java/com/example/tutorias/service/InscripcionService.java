@@ -1,5 +1,6 @@
 package com.example.tutorias.service;
 
+import com.example.tutorias.dto.inscripcion.HistorialTutoriaAlumnoDTO;
 import com.example.tutorias.dto.inscripcion.InscripcionResponseDTO;
 import com.example.tutorias.entity.*;
 import com.example.tutorias.repository.*;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +36,10 @@ public class InscripcionService {
 
         Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoría no encontrada."));
+
+        if (tutoria.getEstado() != EstadoTutoria.ACTIVA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La tutoría no se encuentra activa.");
+        }
 
         Alumno alumno = alumnoRepository.findByEmail(emailAlumno)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado."));
@@ -100,6 +107,15 @@ public class InscripcionService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<HistorialTutoriaAlumnoDTO> obtenerHistorialTutoriasAlumno(String emailAlumno) {
+        return inscripcionRepository.findByAlumnoEmailAndStatus(emailAlumno, InscripcionStatus.ACTIVA).stream()
+                .filter(inscripcion -> inscripcion.getTutoria().getEstado() != EstadoTutoria.CANCELADA)
+                .filter(inscripcion -> tutoriaFinalizada(inscripcion.getTutoria()))
+                .map(this::toHistorialResponse)
+                .toList();
+    }
+
 
     private void validarCupos(Tutoria tutoria) {
         long inscriptosActuales = inscripcionRepository.countByTutoriaIdAndStatus(tutoria.getId(), InscripcionStatus.ACTIVA);
@@ -121,5 +137,29 @@ public class InscripcionService {
         dto.setNombreAlumno(inscripcion.getAlumno().getNombre() + " " + inscripcion.getAlumno().getApellido());
         dto.setEmailAlumno(inscripcion.getAlumno().getEmail());
         return dto;
+    }
+
+    private HistorialTutoriaAlumnoDTO toHistorialResponse(Inscripcion inscripcion) {
+        Tutoria tutoria = inscripcion.getTutoria();
+        HistorialTutoriaAlumnoDTO dto = new HistorialTutoriaAlumnoDTO();
+        dto.setInscripcionId(inscripcion.getId());
+        dto.setTutoriaId(tutoria.getId());
+        dto.setNombreTutoria(tutoria.getNombre());
+        dto.setMateriaNombre(tutoria.getMateria() != null ? tutoria.getMateria().getNombre() : null);
+        dto.setNombreTutor(tutoria.getTutor().getNombre() + " " + tutoria.getTutor().getApellido());
+        dto.setFecha(tutoria.getFecha());
+        dto.setHoraInicio(tutoria.getHoraInicio());
+        dto.setHoraFin(tutoria.getHoraFin());
+        dto.setModalidad(tutoria.getModalidad());
+        dto.setSede(tutoria.getSede());
+        return dto;
+    }
+
+    private boolean tutoriaFinalizada(Tutoria tutoria) {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        return tutoria.getFecha().isBefore(hoy)
+                || (tutoria.getFecha().isEqual(hoy) && !tutoria.getHoraFin().isAfter(ahora));
     }
 }

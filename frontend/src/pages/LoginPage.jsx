@@ -17,7 +17,13 @@ function LoginPage() {
 		const status = await login(dataLogin);
 		if (status === 200) {
 			console.log("status: ", status);
-			navigate("/dashboard");
+			const user = JSON.parse(localStorage.getItem("user"));	
+			console.log("user: ", user);
+			if (user?.role === "ADMIN") {
+				navigate("/validacion-tutores");
+			} else {
+				navigate("/dashboard");
+			}
 		}
 	};
 

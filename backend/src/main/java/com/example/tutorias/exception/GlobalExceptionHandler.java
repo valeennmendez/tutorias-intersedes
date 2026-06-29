@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler  {
@@ -28,6 +29,15 @@ public class GlobalExceptionHandler  {
         );
         return new ResponseEntity<>(errores, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getReason());
+        response.put("detalle", ex.getReason());
+        return new ResponseEntity<>(response, ex.getStatusCode());
+    }
+
     // si es un 500, es un error del servidor, no del cliente, pero lo manejamos para evitar que se expongan detalles innecesarios
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenerico(Exception ex) {
