@@ -35,7 +35,7 @@ public class MateriaController {
         return materiaService.obtenerTodasMaterias();
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public MateriaResponse crearMateria(@RequestBody CreateMateriaRequest request) {
         return materiaService.crearMateria(request.getNombre());
     }
