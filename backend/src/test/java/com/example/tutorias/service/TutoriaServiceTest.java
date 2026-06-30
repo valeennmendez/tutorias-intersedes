@@ -95,7 +95,7 @@ class TutoriaServiceTest {
     void crearTutoriaRechazaTutorNoAprobado() {
         CrearTutoriaRequest request = requestVirtual();
         Tutor tutor = tutorAprobado();
-        tutor.setEstado(false);
+        tutor.setEstadoTutor(false);
 
         when(tutorRepository.findById(1L)).thenReturn(Optional.of(tutor));
 
@@ -139,7 +139,7 @@ class TutoriaServiceTest {
         Tutor tutor = new Tutor();
         tutor.setId(1L);
         tutor.setNombre("Tutor Test");
-        tutor.setEstado(true);
+        tutor.setEstadoTutor(true);
         return tutor;
     }
 

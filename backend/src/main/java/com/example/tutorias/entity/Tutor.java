@@ -20,7 +20,7 @@ public class Tutor extends Alumno { //IMPORTANTE: La clase Tutor hereda de Alumn
     @Column(nullable = true)
     private String titulo;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false") //renombramos a estadoTutor para evitar confusiones con el estado del alumno, ya que un tutor es un tipo de alumno y puede tener su propio estado de aprobación.
     private Boolean estadoTutor;
 
     // 

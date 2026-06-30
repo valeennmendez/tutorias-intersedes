@@ -2,10 +2,16 @@ package com.example.tutorias.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,15 +20,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import com.example.tutorias.entity.Administrador;
 import com.example.tutorias.entity.Alumno;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.PostulacionTutor;
 import com.example.tutorias.entity.PostulacionTutorEstado;
+import com.example.tutorias.entity.Role;
+import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.AlumnoRepository;
 import com.example.tutorias.repository.MateriaRepository;
+import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.PostulacionTutorRepository;
+import com.example.tutorias.repository.TutorRepository;
+import com.example.tutorias.util.NotificacionService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import com.example.tutorias.dto.postulaciones.PostulacionTutorResponseDTO;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,8 +56,28 @@ public class PostulacionTutorServiceTest {
     @Mock
     private PostulacionTutorRepository postulacionTutorRepository;
 
+    @Mock
+    private PersonaRepository personaRepository;
+
+    @Mock
+    private TutorRepository tutorRepository;
+
+    @Mock
+    private NotificacionService notificacionService;
+
+    @Mock
+    private jakarta.persistence.EntityManager entityManager; 
+
+    @Mock
+    private jakarta.persistence.Query nativeQueryMock; 
+
     @InjectMocks
     private PostulacionTutorServiceImp postulacionTutorService;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(postulacionTutorService, "entityManager", entityManager);
+    }
 
     @Test
     void registrarPostulacion_Exito() {
@@ -167,5 +203,185 @@ public class PostulacionTutorServiceTest {
         assertFalse(resultado.isEmpty());
         assertEquals(1, resultado.size());
         assertEquals("Programación", resultado.get(0).getMateria().getNombre());
+    }
+    
+    @Test
+    void actualizarEstadoPostulacion_Aprobada_PromueveAlumno() {
+        // 1. Preparamos los datos falsos
+        Long idPostulacion = 1L;
+        Long idAdmin = 99L;
+        
+        Administrador admin = new Administrador();
+        admin.setId(idAdmin);
+
+        Alumno postulante = new Alumno();
+        postulante.setId(10L);
+        postulante.setEmail("robertino@comunidad.unnoba.edu.ar");
+
+        Materia materia = new Materia();
+        materia.setId(5L);
+        materia.setNombre("Sistemas y Organizaciones");
+
+        PostulacionTutor postulacion = new PostulacionTutor();
+        postulacion.setId(idPostulacion);
+        postulacion.setPostulante(postulante);
+        postulacion.setMateria(materia);
+        postulacion.setEstado(PostulacionTutorEstado.PENDIENTE);
+
+        Tutor tutorCreado = new Tutor();
+        tutorCreado.setId(10L);
+        tutorCreado.setMaterias(new HashSet<>()); // Lista vacía para que no tire NullPointer
+        
+        // 2. Simulamos el comportamiento de los repositorios
+        when(postulacionTutorRepository.findById(idPostulacion)).thenReturn(Optional.of(postulacion));
+        when(personaRepository.findById(idAdmin)).thenReturn(Optional.of(admin));
+        
+        // Simula que NO es tutor la primera vez que pregunta
+        when(tutorRepository.findById(10L))
+            .thenReturn(Optional.empty()) // Para el if (!yaEsTutor)
+            .thenReturn(Optional.of(tutorCreado)); // Para recuperarlo después de las queries nativas
+
+        // 3. Simulamos la magia oscura del EntityManager (Queries Nativas)
+        when(entityManager.createNativeQuery(anyString())).thenReturn(nativeQueryMock);
+        when(nativeQueryMock.setParameter(anyString(), any())).thenReturn(nativeQueryMock);
+        when(nativeQueryMock.executeUpdate()).thenReturn(1);
+        
+        when(entityManager.merge(any(Materia.class))).thenReturn(materia);
+
+        // 4. Ejecutamos el método real
+        postulacionTutorService.actualizarEstadoPostulacion(idPostulacion, PostulacionTutorEstado.APROBADA, idAdmin, "Todo OK");
+
+        // 5. Verificamos que todo haya ocurrido como esperábamos
+        assertEquals(PostulacionTutorEstado.APROBADA, postulacion.getEstado());
+        assertEquals(Role.TUTOR, postulante.getRole());
+        
+        // Verificamos que se hayan ejecutado los updates nativos (2 veces: el INSERT y el UPDATE)
+        verify(entityManager, times(2)).createNativeQuery(anyString());
+        
+        // Verificamos que se guardó el tutor con la materia asignada
+        verify(tutorRepository, times(1)).save(tutorCreado);
+        assertTrue(tutorCreado.getMaterias().contains(materia));
+
+        // Verificamos que se mandó el mail de éxito
+        verify(notificacionService, times(1)).enviarNotificacionAprobacion(postulante.getEmail(), materia.getNombre());
+    }
+
+    @Test
+    void actualizarEstadoPostulacion_Rechazada_EnviaCorreoConMotivo() {
+        Long idPostulacion = 1L;
+        Long idAdmin = 99L;
+        
+        Administrador admin = new Administrador();
+        admin.setId(idAdmin);
+
+        Alumno postulante = new Alumno();
+        postulante.setId(10L);
+        postulante.setEmail("robertino@comunidad.unnoba.edu.ar");
+
+        Materia materia = new Materia();
+        materia.setNombre("Sistemas y Organizaciones");
+
+        PostulacionTutor postulacion = new PostulacionTutor();
+        postulacion.setId(idPostulacion);
+        postulacion.setPostulante(postulante);
+        postulacion.setMateria(materia);
+        postulacion.setEstado(PostulacionTutorEstado.PENDIENTE);
+
+        when(postulacionTutorRepository.findById(idPostulacion)).thenReturn(Optional.of(postulacion));
+        when(personaRepository.findById(idAdmin)).thenReturn(Optional.of(admin));
+
+        // Ejecutamos el rechazo
+        String motivoRechazo = "Falta certificado de alumno regular.";
+        postulacionTutorService.actualizarEstadoPostulacion(idPostulacion, PostulacionTutorEstado.RECHAZADA, idAdmin, motivoRechazo);
+
+        // Verificamos que cambió el estado a rechazada
+        assertEquals(PostulacionTutorEstado.RECHAZADA, postulacion.getEstado());
+        assertEquals(motivoRechazo, postulacion.getAdminComentario());
+
+        // Verificamos que NUNCA se intentó guardar un tutor
+        verify(tutorRepository, never()).save(any());
+        verify(entityManager, never()).createNativeQuery(anyString());
+
+        // Verificamos que se mandó el mail de rechazo
+        verify(notificacionService, times(1)).enviarNotificacionRechazo(postulante.getEmail(), materia.getNombre(), motivoRechazo);
+    }
+    @Test
+    void actualizarEstadoPostulacion_PostulacionNoExiste_LanzaExcepcion() {
+        when(postulacionTutorRepository.findById(99L)).thenReturn(Optional.empty());
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> {
+            postulacionTutorService.actualizarEstadoPostulacion(99L, PostulacionTutorEstado.APROBADA, 1L, "Comentario");
+        });
+
+        assertEquals("La postulación no existe.", ex.getMessage());
+        verify(personaRepository, never()).findById(any()); // Verifica que el proceso se cortó ahí
+    }
+
+    @Test
+    void actualizarEstadoPostulacion_AlumnoYaEsTutor_AgregaMateriaSinConsultasNativas() {
+        Long idPostulacion = 1L;
+        Long idAdmin = 99L;
+        
+        Administrador admin = new Administrador(); admin.setId(idAdmin);
+        Alumno postulante = new Alumno(); postulante.setId(10L); postulante.setEmail("test@test.com");
+        Materia nuevaMateria = new Materia(); nuevaMateria.setId(5L); nuevaMateria.setNombre("Programación");
+
+        PostulacionTutor postulacion = new PostulacionTutor();
+        postulacion.setId(idPostulacion);
+        postulacion.setPostulante(postulante);
+        postulacion.setMateria(nuevaMateria);
+        postulacion.setEstado(PostulacionTutorEstado.PENDIENTE);
+
+        // Acá simulamos que el tutor YA EXISTE en la base de datos
+        Tutor tutorExistente = new Tutor();
+        tutorExistente.setId(10L);
+        tutorExistente.setMaterias(new HashSet<>()); 
+
+        when(postulacionTutorRepository.findById(idPostulacion)).thenReturn(Optional.of(postulacion));
+        when(personaRepository.findById(idAdmin)).thenReturn(Optional.of(admin));
+        
+        // Cuando pregunte si es tutor, le decimos que SÍ (Optional.of)
+        when(tutorRepository.findById(10L)).thenReturn(Optional.of(tutorExistente));
+        
+        when(entityManager.merge(any(Materia.class))).thenReturn(nuevaMateria);
+
+        // Ejecutamos
+        postulacionTutorService.actualizarEstadoPostulacion(idPostulacion, PostulacionTutorEstado.APROBADA, idAdmin, "OK");
+
+        // Verificamos que NUNCA llamó a las queries nativas
+        verify(entityManager, never()).createNativeQuery(anyString());
+        
+        // Pero SÍ guardó la materia nueva en el tutor que ya existía
+        verify(tutorRepository, times(1)).save(tutorExistente);
+        assertTrue(tutorExistente.getMaterias().contains(nuevaMateria));
+    }
+
+    @Test
+    void actualizarEstadoPostulacion_ErrorAlRecuperarTutor_LanzaExcepcion() {
+        Administrador admin = new Administrador(); admin.setId(99L);
+        Alumno postulante = new Alumno(); postulante.setId(10L);
+        Materia materia = new Materia(); materia.setId(5L);
+
+        PostulacionTutor postulacion = new PostulacionTutor();
+        postulacion.setId(1L);
+        postulacion.setPostulante(postulante);
+        postulacion.setMateria(materia);
+        postulacion.setEstado(PostulacionTutorEstado.PENDIENTE);
+
+        when(postulacionTutorRepository.findById(1L)).thenReturn(Optional.of(postulacion));
+        when(personaRepository.findById(99L)).thenReturn(Optional.of(admin));
+        
+        // Simula el proceso: 1. No existe (if). 2. Queries nativas. 3. Sigue sin existir al recuperarlo.
+        when(tutorRepository.findById(10L)).thenReturn(Optional.empty()); // Se devuelve empty las dos veces
+
+        when(entityManager.createNativeQuery(anyString())).thenReturn(nativeQueryMock);
+        when(nativeQueryMock.setParameter(anyString(), any())).thenReturn(nativeQueryMock);
+        when(nativeQueryMock.executeUpdate()).thenReturn(1);
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> {
+            postulacionTutorService.actualizarEstadoPostulacion(1L, PostulacionTutorEstado.APROBADA, 99L, "OK");
+        });
+
+        assertEquals("Error al crear el tutor.", ex.getMessage());
     }
 }

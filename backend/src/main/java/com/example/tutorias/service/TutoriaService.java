@@ -52,8 +52,7 @@ public class TutoriaService {
         Tutor tutor = tutorRepository.findById(request.getTutorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor no encontrado"));
 
-        if (!Boolean.TRUE.equals(tutor.getEstado())) {
-            System.out.println("🚩 El tutor con ID " + tutor.getId() + " no está aprobado. Estado: " + tutor.getEstado());
+        if (!Boolean.TRUE.equals(tutor.getEstadoTutor())) { //accedemos a la nueva columna
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tutor no esta aprobado");
         }
 

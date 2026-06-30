@@ -55,7 +55,13 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
     @PersistenceContext
     private EntityManager entityManager;
 
-	 PostulacionTutorServiceImp(TutorRepository tutorRepository) {
+	 PostulacionTutorServiceImp(TutorRepository tutorRepository, AlumnoRepository alumnoRepository, MateriaRepository materiaRepository, FileStorageService fileStorageService, PersonaRepository personaRepository, PostulacionTutorRepository postulacionTutorRepository, NotificacionService notificacionService) {
+        this.alumnoRepository = alumnoRepository;
+        this.materiaRepository = materiaRepository;
+        this.fileStorageService = fileStorageService;
+        this.personaRepository = personaRepository;
+        this.postulacionTutorRepository = postulacionTutorRepository;
+        this.notificacionService = notificacionService;
 		this.tutorRepository = tutorRepository;
 	 }
 
@@ -171,7 +177,7 @@ public class PostulacionTutorServiceImp implements PostulacionTutorService {
 
             if (!yaEsTutor) {
                 entityManager.createNativeQuery( //crea un registro vacío en la tabla tutor para un alumno que se está promoviendo a tutor, y además es una FK verifica que exista el mismo id en la table persona.
-                "INSERT INTO tutor (id, administrador_id) VALUES (:id, :adminId)"
+                "INSERT INTO tutor (id, administrador_id, estado_tutor) VALUES (:id, :adminId, true)"
                 )
                 .setParameter("id", alumnoParaPromover.getId()) //vamos a tener el mismo id en la tabla persona, alumno y tutor, por la herencia y cómo resuelve el triple join
                 .setParameter("adminId", adminId)
