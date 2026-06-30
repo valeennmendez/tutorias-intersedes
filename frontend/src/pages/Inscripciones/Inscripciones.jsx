@@ -99,11 +99,10 @@ export function MisInscripciones() {
 
     setLoading("feedback");
     try {
-      await axiosInstance.post("/feedback", {
-        inscripcion_id: selectedInscripcion,
+      await axiosInstance.post(`/feedback/inscripcion/${selectedInscripcion}`, {
         calificacion: feedbackData.calificacion,
-        comentario: feedbackData.comentario || null,
-        es_anonimo: feedbackData.es_anonimo,
+        comentarios: feedbackData.comentario || "",
+        esAnonimo: feedbackData.es_anonimo,
       });
 
       toast.success("¡Gracias por tu feedback!");
@@ -112,11 +111,7 @@ export function MisInscripciones() {
       setFeedbackData({ calificacion: 5, comentario: "", es_anonimo: false });
       await cargarInscripciones();
     } catch (error) {
-      if (error.response?.status === 409) {
-        toast.error("Ya has dejado feedback para esta tutoría");
-        return;
-      }
-      toast.error("Error al enviar feedback");
+      toast.error(error.response?.data?.error || "Error al enviar feedback");
     } finally {
       setLoading(null);
     }
