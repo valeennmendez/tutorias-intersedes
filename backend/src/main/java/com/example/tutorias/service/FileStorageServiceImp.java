@@ -1,6 +1,9 @@
 package com.example.tutorias.service;
 
+import com.example.tutorias.entity.Tutoria;
 import com.example.tutorias.exception.ReglaNegocioException;
+import com.example.tutorias.repository.TutoriaRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -15,6 +18,11 @@ public class FileStorageServiceImp implements FileStorageService {
 
     // Se guardará en una carpeta 'upload/certificaciones' en la raíz del proyecto
     private final Path rootLocation = Paths.get("upload", "certificaciones");
+    private final TutoriaRepository tutoriaRepository;
+    
+    public FileStorageServiceImp(TutoriaRepository tutoriaRepository) {
+        this.tutoriaRepository = tutoriaRepository;
+    }
 
     @Override
     public String guardarArchivo(MultipartFile archivo) {
@@ -49,4 +57,5 @@ public class FileStorageServiceImp implements FileStorageService {
             throw new ReglaNegocioException("No se pudo almacenar el archivo PDF. Error: " + e.getMessage());
         }
     }
+
 }

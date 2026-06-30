@@ -9,6 +9,7 @@ import com.example.tutorias.entity.ModalidadTutoria;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
+import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.InscripcionRepository;
 import com.example.tutorias.repository.MateriaRepository;
 import com.example.tutorias.repository.TutorRepository;
@@ -66,6 +67,10 @@ public class TutoriaService {
                 request.getHoraFin(),
                 request.getHoraInicio()
         );
+
+        if (request.getCupo() <= 0 || request.getCupo() > 50) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El cupo debe ser un valor entre 1 y 50");
+        }
 
         if (horarioOcupado) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El tutor ya tiene una tutoria en ese horario");
@@ -206,4 +211,34 @@ public class TutoriaService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    private TutoriaResponse guardarLink(Long tutoriaId, String link) {
+        Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
+                .orElseThrow(() -> new ReglaNegocioException("Tutoria no encontrada con ID: " + tutoriaId));
+
+        tutoria.setLinkDrive(link);
+
+        Tutoria tutoriaGuardada = tutoriaRepository.save(tutoria);
+
+        return TutoriaResponse.from(
+                tutoriaGuardada,
+                tutoriaGuardada.getInscripciones() != null
+                        ? tutoriaGuardada.getInscripciones().size()
+                        : 0
+        );
 }
+
+    public TutoriaResponse agregarLink(Long tutoriaId, String link) {
+        return guardarLink(tutoriaId, link);
+    }
+
+    public TutoriaResponse actualizarLink(Long tutoriaId, String link) {
+        return guardarLink(tutoriaId, link);
+    }
+
+    public TutoriaResponse eliminarLink(Long tutoriaId) {
+        return guardarLink(tutoriaId, null);
+    }
+}
+
+

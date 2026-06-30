@@ -84,7 +84,7 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()    
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/create-admin").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/create-admin/").permitAll()
@@ -101,6 +101,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/tutorias/**").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/tutorias/{id}/agregar-link").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/tutorias/{id}/actualizar-link").hasAnyRole("TUTOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/tutorias/{id}/eliminar-link").hasAnyRole("TUTOR", "ADMIN")
 
                 .requestMatchers("/inscripciones/**").authenticated()
                 .requestMatchers("/feedback/**").hasAnyRole("ALUMNO", "ADMIN")
