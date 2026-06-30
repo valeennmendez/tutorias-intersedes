@@ -68,6 +68,10 @@ public class TutoriaService {
                 request.getHoraInicio()
         );
 
+        if (request.getCupo() <= 0 || request.getCupo() > 50) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El cupo debe ser un valor entre 1 y 50");
+        }
+
         if (horarioOcupado) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El tutor ya tiene una tutoria en ese horario");
         }
