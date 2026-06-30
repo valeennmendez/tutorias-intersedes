@@ -60,7 +60,7 @@ class AdminPanelServiceTest {
         tutor.setTitulo("Ingeniero en Sistemas");
 
         Page<Tutor> pageTutor = new PageImpl<>(List.of(tutor));
-        when(tutorRepository.findByEstadoTrue(pageableMock)).thenReturn(pageTutor);
+        when(tutorRepository.findByEstadoTutorTrue(pageableMock)).thenReturn(pageTutor);
 
         // Act
         Page<TutorAdminDTO> resultado = adminPanelService.obtenerTutoresAprobados(pageableMock);
@@ -71,7 +71,7 @@ class AdminPanelServiceTest {
         TutorAdminDTO dto = resultado.getContent().get(0);
         assertEquals("Juan Perez", dto.getNombreCompleto());
         assertEquals("juan@tutor.com", dto.getEmail());
-        verify(tutorRepository, times(1)).findByEstadoTrue(pageableMock);
+        verify(tutorRepository, times(1)).findByEstadoTutorTrue(pageableMock);
     }
 
     @Test

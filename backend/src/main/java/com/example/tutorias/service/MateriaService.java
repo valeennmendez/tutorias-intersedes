@@ -27,7 +27,7 @@ public class MateriaService {
         var tutor = tutorRepository.findById(tutorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor no encontrado"));
 
-        if (!Boolean.TRUE.equals(tutor.getEstado())) {
+        if (!Boolean.TRUE.equals(tutor.getEstadoTutor())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tutor no está aprobado");
         }
 
