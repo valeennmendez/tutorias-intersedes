@@ -1,15 +1,10 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import {
-	BookOpen,
 	CalendarDays,
 	ChevronDown,
 	ChevronUp,
-	GraduationCap,
-	Home,
-	ClipboardList,
+	Loader2,
 	Search,
-	Users,
 } from "lucide-react";
 
 import {
@@ -21,110 +16,58 @@ import {
 } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
+import { axiosInstance } from "@/utils/axios";
 
-const EMAIL_EJEMPLO = "usuario.ejemplo@gmail.com";
-
-function obtenerEmailDesdeToken(token) {
-	if (!token) return EMAIL_EJEMPLO;
-
-	const cleanToken = token.replace("Bearer ", "");
-	const payload = cleanToken.split(".")[1];
-
-	if (!payload) return EMAIL_EJEMPLO;
-
-	try {
-		const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-		const jsonPayload = atob(base64);
-		const decoded = JSON.parse(jsonPayload);
-
-		return decoded.sub || EMAIL_EJEMPLO;
-	} catch {
-		return EMAIL_EJEMPLO;
-	}
+function formatearFecha(fecha) {
+	if (!fecha) return "";
+	const [anio, mes, dia] = fecha.split("-");
+	const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+	return `${dia} ${meses[parseInt(mes) - 1]} ${anio}`;
 }
 
-const TUTORES = [
-	{
-		id: 1,
-		apellido: "Pérez",
-		nombre: "Juan",
-		materia: "Bases de Datos",
-		sede: "Junín",
-		dias: ["Lunes", "Miércoles"],
-		horario: "18:00 a 20:00",
-		modalidad: "Presencial",
-		contacto: "juan.perez@gmail.com",
-		descripcion:
-			"Tutor con disponibilidad para acompañar a estudiantes en consultas de prácticas y parciales.",
-	},
-	{
-		id: 2,
-		apellido: "Gómez",
-		nombre: "Ana",
-		materia: "Programación II",
-		sede: "Pergamino",
-		dias: ["Martes", "Jueves"],
-		horario: "16:00 a 18:00",
-		modalidad: "Virtual",
-		contacto: "ana.gomez@gmail.com",
-		descripcion:
-			"Apoya en estructuras de datos, lógica de programación y resolución de ejercicios prácticos.",
-	},
-	{
-		id: 3,
-		apellido: "López",
-		nombre: "Martín",
-		materia: "Álgebra Lineal",
-		sede: "Junín",
-		dias: ["Viernes"],
-		horario: "14:00 a 17:00",
-		modalidad: "Presencial",
-		contacto: "martin.lopez@gmail.com",
-		descripcion:
-			"Ideal para consultas sobre matrices, sistemas de ecuaciones y espacios vectoriales.",
-	},
-	{
-		id: 4,
-		apellido: "Fernández",
-		nombre: "Lucía",
-		materia: "Cálculo I",
-		sede: "Rojas",
-		dias: ["Lunes", "Viernes"],
-		horario: "09:00 a 11:00",
-		modalidad: "Híbrida",
-		contacto: "lucia.fernandez@gmail.com",
-		descripcion:
-			"Acompaña el aprendizaje de límites, derivadas e integrales con material de apoyo.",
-	},
-];
+const DIAS_SEMANA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 export default function FiltroTutorPage() {
 	const [busqueda, setBusqueda] = useState("");
+	const [tutorias, setTutorias] = useState([]);
+	const [cargando, setCargando] = useState(true);
 	const [tutorExpandido, setTutorExpandido] = useState(null);
-	const emailLogeado = obtenerEmailDesdeToken(localStorage.getItem("token"));
 
-	const tutoresFiltrados = useMemo(() => {
+	useEffect(() => {
+		const cargarTutorias = async () => {
+			try {
+				setCargando(true);
+				const response = await axiosInstance.get("/tutorias");
+				setTutorias(response.data || []);
+			} catch (error) {
+				console.error("Error al cargar tutorías:", error);
+			} finally {
+				setCargando(false);
+			}
+		};
+
+		cargarTutorias();
+	}, []);
+
+	const tutoriasFiltradas = useMemo(() => {
 		const termino = busqueda.trim().toLowerCase();
 
-		if (!termino) return TUTORES;
+		if (!termino) return tutorias;
 
-		return TUTORES.filter((tutor) => {
+		return tutorias.filter((tutoria) => {
 			const textoBuscable = [
-				tutor.apellido,
-				tutor.nombre,
-				`${tutor.apellido} ${tutor.nombre}`,
-				tutor.materia,
-				tutor.sede,
-				tutor.modalidad,
-				tutor.horario,
-				tutor.dias.join(" "),
+				tutoria.tutorNombre,
+				tutoria.materiaNombre,
+				tutoria.sede,
+				tutoria.modalidad,
+				tutoria.nombre,
 			]
 				.join(" ")
 				.toLowerCase();
 
 			return textoBuscable.includes(termino);
 		});
-	}, [busqueda]);
+	}, [busqueda, tutorias]);
 
 	const toggleDetalles = (id) => {
 		setTutorExpandido((actual) => (actual === id ? null : id));
@@ -132,69 +75,8 @@ export default function FiltroTutorPage() {
 
 	return (
 		<div className="min-h-screen bg-[#F7F9FB]">
-			<header className="border-b border-slate-200 bg-[#F7F9FB]">
-				<div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-					<div className="flex items-center gap-4">
-						<img src="/logo-unnoba.png" alt="logo-unnoba" className="w-20 rounded-xl" />
-						<h1 className="text-2xl font-bold text-slate-900">Tutorías</h1>
-					</div>
-
-					<nav className="flex items-center gap-2">
-						<Link
-							to="/"
-							className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-						>
-							<Home className="h-5 w-5" />
-							Inicio
-						</Link>
-
-						<Link
-							to="/tutorias"
-							className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-						>
-							<BookOpen className="h-5 w-5" />
-							Tutorías
-						</Link>
-
-						<Link
-							to="/mis-inscripciones"
-							className="flex items-center gap-2 rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-200"
-						>
-							<ClipboardList className="h-5 w-5" />
-							Mis Inscripciones
-						</Link>
-
-						<Link
-							to="/filtros-tutores"
-							className="flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2 text-slate-900"
-						>
-							<GraduationCap className="h-5 w-5" />
-							Filtros de Tutores
-						</Link>
-					</nav>
-
-					<div className="flex items-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#008BBA] font-semibold text-white">
-							{emailLogeado.slice(0, 2).toUpperCase()}
-						</div>
-
-						<span className="font-medium text-slate-700">{emailLogeado}</span>
-					</div>
-				</div>
-			</header>
-
 			<div className="px-4 py-10">
 				<div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-					<div className="flex flex-col gap-2 text-center sm:text-left">
-						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 sm:mx-0">
-							<Users className="h-6 w-6 text-[#008BBA]" />
-						</div>
-
-						<h1 className="text-3xl font-bold text-slate-900">Filtros de Tutores</h1>
-						<p className="text-sm text-slate-600">
-							Buscá tutores por nombre, materia, sede, horario o días de atención y revisá sus detalles.
-						</p>
-					</div>
 
 					<Card className="border-slate-200 shadow-md">
 						<CardHeader className="pb-4">
@@ -216,99 +98,133 @@ export default function FiltroTutorPage() {
 								/>
 							</div>
 
-							<div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-								<span>
-									{tutoresFiltrados.length} tutor{tutoresFiltrados.length === 1 ? "" : "es"} encontrado{tutoresFiltrados.length === 1 ? "" : "s"}
-								</span>
-								<span className="hidden sm:inline">Hacé click en "Ver detalles" para desplegar horario y días.</span>
-							</div>
-
-							<div className="grid gap-4">
-								{tutoresFiltrados.length === 0 ? (
-									<div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
-										No se encontraron tutores con ese criterio de búsqueda.
+							{cargando ? (
+								<div className="flex justify-center py-12">
+									<Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+								</div>
+							) : (
+								<>
+									<div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+										<span>
+											{tutoriasFiltradas.length} tutoría{tutoriasFiltradas.length === 1 ? "" : "s"} encontrada{tutoriasFiltradas.length === 1 ? "" : "s"}
+										</span>
+										<span className="hidden sm:inline">Hacé click en "Ver detalles" para ver más información.</span>
 									</div>
-								) : (
-									tutoresFiltrados.map((tutor) => {
-										const abierto = tutorExpandido === tutor.id;
 
-										return (
-											<Card key={tutor.id} className="border-slate-200 shadow-sm">
-												<CardHeader className="pb-3">
-													<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-														<div>
-															<CardTitle className="text-xl text-slate-900">
-																{tutor.apellido}, {tutor.nombre}
-															</CardTitle>
-															<CardDescription>{tutor.materia}</CardDescription>
-														</div>
+									<div className="grid gap-4">
+										{tutoriasFiltradas.length === 0 ? (
+											<div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+												No se encontraron tutorías con ese criterio de búsqueda.
+											</div>
+										) : (
+											tutoriasFiltradas.map((tutoria) => {
+												const abierto = tutorExpandido === tutoria.id;
+												const diaSemana = tutoria.fecha ? DIAS_SEMANA[new Date(tutoria.fecha).getDay()] : "";
+												const horario = tutoria.horaInicio && tutoria.horaFin
+													? `${tutoria.horaInicio.slice(0, 5)} - ${tutoria.horaFin.slice(0, 5)}`
+													: "";
 
-														<div className="text-left sm:text-right">
-															<span className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-[#008BBA]">
-																{tutor.modalidad}
-															</span>
-															<p className="mt-2 text-sm text-slate-600">{tutor.sede}</p>
-														</div>
-													</div>
-												</CardHeader>
+												return (
+													<Card key={tutoria.id} className="border-slate-200 shadow-sm">
+														<CardHeader className="pb-3">
+															<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+																<div>
+																	<CardTitle className="text-xl text-slate-900">
+																		{tutoria.materiaNombre}
+																	</CardTitle>
+																	<CardDescription>{tutoria.tutorNombre}</CardDescription>
+																</div>
 
-												<CardContent className="space-y-4 pt-0">
-													<p className="text-sm text-slate-600">{tutor.descripcion}</p>
-
-													<Button
-														type="button"
-														onClick={() => toggleDetalles(tutor.id)}
-														className="bg-[#008BBA] text-white hover:bg-[#00779f]"
-													>
-														{abierto ? (
-															<>
-																<ChevronUp className="mr-2 h-4 w-4" />
-																Ocultar detalles
-															</>
-														) : (
-															<>
-																<ChevronDown className="mr-2 h-4 w-4" />
-																Ver detalles
-															</>
-														)}
-													</Button>
-
-													{abierto ? (
-														<div className="grid gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
-															<div>
-																<p className="font-semibold text-slate-900">Materia</p>
-																<p>{tutor.materia}</p>
-															</div>
-
-															<div>
-																<p className="font-semibold text-slate-900">Horario</p>
-																<p>{tutor.horario}</p>
-															</div>
-
-															<div>
-																<p className="font-semibold text-slate-900">Días</p>
-																<div className="mt-1 flex flex-wrap gap-2">
-																	{tutor.dias.map((dia) => (
-																		<span key={dia} className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm">
-																			<CalendarDays className="mr-1 inline h-3.5 w-3.5 text-[#008BBA]" />
-																			{dia}
-																		</span>
-																	))}
+																<div className="text-left sm:text-right">
+																	<span className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-[#008BBA]">
+																		{tutoria.modalidad}
+																	</span>
+																	<p className="mt-2 text-sm text-slate-600">{tutoria.sede}</p>
 																</div>
 															</div>
+														</CardHeader>
 
-															<div>
-																<p className="font-semibold text-slate-900">Contacto</p>
-																<p>{tutor.contacto}</p>
+														<CardContent className="space-y-4 pt-0">
+															<p className="text-sm text-slate-600">{tutoria.nombre}</p>
+
+															<div className="flex gap-2">
+																<Button
+																	type="button"
+																	onClick={() => toggleDetalles(tutoria.id)}
+																	className="bg-[#008BBA] text-white hover:bg-[#00779f]"
+																>
+																	{abierto ? (
+																		<>
+																			<ChevronUp className="mr-2 h-4 w-4" />
+																			Ocultar detalles
+																		</>
+																	) : (
+																		<>
+																			<ChevronDown className="mr-2 h-4 w-4" />
+																			Ver detalles
+																		</>
+																	)}
+																</Button>
+																<Button
+																	type="button"
+																	variant="outline"
+																	className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+																>
+																	Inscribirse
+																</Button>
 															</div>
-														</div>
-													) : null}
-												</CardContent>
-											</Card>
-										);
-									})
-								)}
-							</div>
+
+															{abierto ? (
+																<div className="grid gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
+																	<div>
+																		<p className="font-semibold text-slate-900">Materia</p>
+																		<p>{tutoria.materiaNombre}</p>
+																	</div>
+
+																	<div>
+																		<p className="font-semibold text-slate-900">Fecha</p>
+																		<p>{formatearFecha(tutoria.fecha)}</p>
+																	</div>
+
+																	<div>
+																		<p className="font-semibold text-slate-900">Horario</p>
+																		<p>{horario}</p>
+																	</div>
+
+																	<div>
+																		<p className="font-semibold text-slate-900">Día</p>
+																		<span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm">
+																			<CalendarDays className="mr-1 inline h-3.5 w-3.5 text-[#008BBA]" />
+																			{diaSemana}
+																		</span>
+																	</div>
+
+																	<div>
+																		<p className="font-semibold text-slate-900">Sede</p>
+																		<p>{tutoria.sede}</p>
+																	</div>
+
+																	<div>
+																		<p className="font-semibold text-slate-900">Modalidad</p>
+																		<p>{tutoria.modalidad}</p>
+																	</div>
+
+																	{tutoria.ubicacion ? (
+																		<div>
+																			<p className="font-semibold text-slate-900">Ubicación</p>
+																			<p>{tutoria.ubicacion}</p>
+																		</div>
+																	) : null}
+																</div>
+															) : null}
+														</CardContent>
+													</Card>
+												);
+											})
+										)}
+									</div>
+								</>
+							)}
 						</CardContent>
 					</Card>
 				</div>
