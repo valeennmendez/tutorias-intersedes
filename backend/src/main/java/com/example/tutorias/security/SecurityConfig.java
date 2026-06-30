@@ -5,6 +5,10 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -128,5 +133,11 @@ public class SecurityConfig {
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Acceso denegado\", \"detalle\": \"" + authException.getMessage() + "\"}");
         };
+    }
+    
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        // La nueva forma de Spring Security 6+ usa un método estático (factory method)
+        return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_TUTOR \n ROLE_TUTOR > ROLE_ALUMNO");
     }
 }
