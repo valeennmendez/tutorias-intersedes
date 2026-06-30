@@ -51,7 +51,7 @@ public class TutoriaResponse {
                 .modalidad(tutoria.getModalidad())
                 .estado(tutoria.getEstado())
                 .tutorId(tutoria.getTutor() != null ? tutoria.getTutor().getId() : null)
-                .tutorNombre(tutoria.getTutor() != null ? tutoria.getTutor().getNombre() : null)
+                .tutorNombre(tutoria.getTutor() != null ? tutoria.getTutor().getNombre() + " " + tutoria.getTutor().getApellido() : null)
                 .materiaId(tutoria.getMateria() != null ? tutoria.getMateria().getId() : null)
                 .materiaNombre(tutoria.getMateria() != null ? tutoria.getMateria().getNombre() : null)
                 .cantidadInscriptos(cantidadInscriptos)

@@ -35,7 +35,6 @@ function App() {
 				<Route element={<ProtecetedRoute />}>
 					<Route element={<LayoutNavbar />}>
 						<Route path="/validacion-tutores" element={<ValidacionTutorPage />} />
-						<Route path="/filtros-tutores" element={<FiltroTutorPage />} />{" "}
 						<Route path="/feedback-tutores" element={<FeedbackTutorPage />} />
 						<Route path="/dashboard" element={<Home />} />
 						<Route path="/prueba" element={<PruebaPage />} />
@@ -44,6 +43,8 @@ function App() {
 						<Route path="/dashboard/gestionar-avisos" element={<GestionarAvisos />} />
 						<Route path="/dashboard/bandeja-avisos" element={<BandejaAvisos />} />
 						<Route path="/dashboard/mis-inscripciones" element={<MisInscripciones />} />
+						<Route path="/dashboard/tutorias" element={<FiltroTutorPage />} />{" "}
+
 					</Route>
 				</Route>
 			</Routes>
