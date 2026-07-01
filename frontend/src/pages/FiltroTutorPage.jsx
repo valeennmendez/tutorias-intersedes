@@ -3,6 +3,7 @@ import {
 	CalendarDays,
 	ChevronDown,
 	ChevronUp,
+	ExternalLink,
 	Loader2,
 	Search,
 } from "lucide-react";
@@ -15,8 +16,19 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
 import { axiosInstance } from "@/utils/axios";
+import { useAuthStore } from "@/store/auth.store";
+import toast from "react-hot-toast";
 
 function formatearFecha(fecha) {
 	if (!fecha) return "";
@@ -28,16 +40,22 @@ function formatearFecha(fecha) {
 const DIAS_SEMANA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 export default function FiltroTutorPage() {
+	const { user } = useAuthStore();
 	const [busqueda, setBusqueda] = useState("");
 	const [tutorias, setTutorias] = useState([]);
 	const [cargando, setCargando] = useState(true);
 	const [tutorExpandido, setTutorExpandido] = useState(null);
+	const [inscripcionesActivas, setInscripcionesActivas] = useState(new Set());
+	const [cargandoInscripciones, setCargandoInscripciones] = useState(true);
+	const [dialogoAbierto, setDialogoAbierto] = useState(null);
+	const [inscribiendo, setInscribiendo] = useState(false);
 
 	useEffect(() => {
 		const cargarTutorias = async () => {
 			try {
 				setCargando(true);
 				const response = await axiosInstance.get("/tutorias");
+				console.log("Tutorías recibidas:", response.data);
 				setTutorias(response.data || []);
 			} catch (error) {
 				console.error("Error al cargar tutorías:", error);
@@ -48,6 +66,30 @@ export default function FiltroTutorPage() {
 
 		cargarTutorias();
 	}, []);
+
+	useEffect(() => {
+		const cargarInscripciones = async () => {
+			if (user?.role !== "alumno") {
+				setCargandoInscripciones(false);
+				return;
+			}
+			try {
+				setCargandoInscripciones(true);
+				const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
+				const activas = new Set(
+					(res.data || [])
+						.filter((i) => i.status === "ACTIVA")
+						.map((i) => i.tutoriaId)
+				);
+				setInscripcionesActivas(activas);
+			} catch (error) {
+				console.error("Error al cargar inscripciones:", error);
+			} finally {
+				setCargandoInscripciones(false);
+			}
+		};
+		cargarInscripciones();
+	}, [user]);
 
 	const tutoriasFiltradas = useMemo(() => {
 		const termino = busqueda.trim().toLowerCase();
@@ -72,6 +114,29 @@ export default function FiltroTutorPage() {
 	const toggleDetalles = (id) => {
 		setTutorExpandido((actual) => (actual === id ? null : id));
 	};
+
+	const handleInscribirse = async (tutoriaId) => {
+		setInscribiendo(true);
+		try {
+			await axiosInstance.post(`/inscripciones/tutoria/${tutoriaId}`);
+			toast.success("¡Inscripción exitosa!");
+			setInscripcionesActivas((prev) => new Set([...prev, tutoriaId]));
+			setDialogoAbierto(null);
+		} catch (error) {
+			const data = error.response?.data;
+			console.error("Error al inscribirse:", error.response || error);
+			const msg =
+				data?.detalle ||
+				data?.error ||
+				error.message ||
+				"Error al inscribirse";
+			toast.error(msg);
+		} finally {
+			setInscribiendo(false);
+		}
+	};
+
+	const tutoriaDialogo = tutorias.find((t) => t.id === dialogoAbierto);
 
 	return (
 		<div className="min-h-screen bg-[#F7F9FB]">
@@ -145,7 +210,23 @@ export default function FiltroTutorPage() {
 														</CardHeader>
 
 														<CardContent className="space-y-4 pt-0">
-															<p className="text-sm text-slate-600">{tutoria.nombre}</p>
+															<div className="flex flex-col gap-1 text-sm">
+																<p className="text-slate-600">{tutoria.nombre}</p>
+																<p className="text-slate-700">
+																	<span className="font-medium">Tutor:</span> {tutoria.tutorNombre}
+																</p>
+																{tutoria.linkDrive ? (
+																	<a
+																		href={tutoria.linkDrive}
+																		target="_blank"
+																		rel="noopener noreferrer"
+																		className="inline-flex items-center gap-1 text-[#008BBA] hover:underline"
+																	>
+																		<ExternalLink className="h-3.5 w-3.5" />
+																		Contenido de Drive
+																	</a>
+																) : null}
+															</div>
 
 															<div className="flex gap-2">
 																<Button
@@ -165,13 +246,32 @@ export default function FiltroTutorPage() {
 																		</>
 																	)}
 																</Button>
-																<Button
-																	type="button"
-																	variant="outline"
-																	className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
-																>
-																	Inscribirse
-																</Button>
+																{user?.role === "alumno" ? (
+																	inscripcionesActivas.has(tutoria.id) ? (
+																		<Button
+																			type="button"
+																			variant="outline"
+																			disabled
+																			className="border-slate-300 text-slate-400 cursor-not-allowed"
+																		>
+																			Ya inscripto
+																		</Button>
+																	) : (
+																		<Button
+																			type="button"
+																			variant="outline"
+																			className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+																			onClick={() => setDialogoAbierto(tutoria.id)}
+																			disabled={cargandoInscripciones}
+																		>
+																			{cargandoInscripciones ? (
+																				<Loader2 className="h-4 w-4 animate-spin" />
+																			) : (
+																				"Inscribirse"
+																			)}
+																		</Button>
+																	)
+																) : null}
 															</div>
 
 															{abierto ? (
@@ -229,6 +329,64 @@ export default function FiltroTutorPage() {
 					</Card>
 				</div>
 			</div>
+
+			<Dialog open={dialogoAbierto !== null} onOpenChange={(open) => { if (!open) setDialogoAbierto(null); }}>
+				{tutoriaDialogo ? (
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Confirmar inscripción</DialogTitle>
+							<DialogDescription>
+								¿Estás seguro que querés inscribirte a esta tutoría?
+							</DialogDescription>
+						</DialogHeader>
+						<div className="space-y-3 py-2">
+							<div className="grid grid-cols-2 gap-2 text-sm">
+								<div>
+									<p className="font-semibold text-slate-900">Materia</p>
+									<p className="text-slate-600">{tutoriaDialogo.materiaNombre}</p>
+								</div>
+								<div>
+									<p className="font-semibold text-slate-900">Tutor</p>
+									<p className="text-slate-600">{tutoriaDialogo.tutorNombre}</p>
+								</div>
+								<div>
+									<p className="font-semibold text-slate-900">Fecha</p>
+									<p className="text-slate-600">{formatearFecha(tutoriaDialogo.fecha)}</p>
+								</div>
+								<div>
+									<p className="font-semibold text-slate-900">Horario</p>
+									<p className="text-slate-600">
+										{tutoriaDialogo.horaInicio?.slice(0, 5)} - {tutoriaDialogo.horaFin?.slice(0, 5)}
+									</p>
+								</div>
+								<div>
+									<p className="font-semibold text-slate-900">Sede</p>
+									<p className="text-slate-600">{tutoriaDialogo.sede}</p>
+								</div>
+								<div>
+									<p className="font-semibold text-slate-900">Modalidad</p>
+									<p className="text-slate-600">{tutoriaDialogo.modalidad}</p>
+								</div>
+							</div>
+						</div>
+						<DialogFooter>
+							<Button variant="outline" onClick={() => setDialogoAbierto(null)}>
+								Cancelar
+							</Button>
+							<Button
+								className="bg-emerald-600 text-white hover:bg-emerald-700"
+								onClick={() => handleInscribirse(tutoriaDialogo.id)}
+								disabled={inscribiendo}
+							>
+								{inscribiendo ? (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								) : null}
+								Confirmar inscripción
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				) : null}
+			</Dialog>
 		</div>
 	);
 }
