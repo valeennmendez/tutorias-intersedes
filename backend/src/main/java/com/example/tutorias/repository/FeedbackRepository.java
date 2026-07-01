@@ -17,6 +17,8 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     // Traer todos los feedbacks dirigidos a un tutor específico
     Page<Feedback> findByInscripcion_Tutoria_Tutor_Id(Long tutorId, Pageable pageable);
 
+    long countByInscripcion_Tutoria_Tutor_Id(Long tutorId);
+
     // Calcular el promedio de estrellas de un tutor
     @Query("SELECT AVG(f.calificacion) FROM Feedback f WHERE f.inscripcion.tutoria.tutor.id = :tutorId")
     Double obtenerPromedioEstrellasPorTutor(Long tutorId);

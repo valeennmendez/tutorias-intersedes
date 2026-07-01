@@ -28,4 +28,6 @@ public interface TutoriaRepository extends JpaRepository<Tutoria, Long>, JpaSpec
             LocalTime horaInicio
     );
     Page<Tutoria> findByEstado(EstadoTutoria estado, Pageable pageable);
+
+    List<Tutoria> findByTutorIdAndEstadoOrderByFechaAscHoraInicioAsc(Long tutorId, EstadoTutoria estado);
 }
