@@ -105,6 +105,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/tutorias/{id}/actualizar-link").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/tutorias/{id}/eliminar-link").hasAnyRole("TUTOR", "ADMIN")
 
+                .requestMatchers(HttpMethod.GET, "/perfil-tutor/**").authenticated()
                 .requestMatchers("/inscripciones/**").authenticated()
                 .requestMatchers("/feedback/**").hasAnyRole("ALUMNO", "ADMIN")
                 .requestMatchers("/avisos/**").hasAnyRole("TUTOR", "ADMIN", "ALUMNO")
