@@ -6,12 +6,14 @@ import com.example.tutorias.entity.EstadoTutoria;
 import com.example.tutorias.entity.InscripcionStatus;
 import com.example.tutorias.entity.Materia;
 import com.example.tutorias.entity.ModalidadTutoria;
+import com.example.tutorias.entity.Persona;
 import com.example.tutorias.entity.Sede;
 import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
 import com.example.tutorias.exception.ReglaNegocioException;
 import com.example.tutorias.repository.InscripcionRepository;
 import com.example.tutorias.repository.MateriaRepository;
+import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.TutorRepository;
 import com.example.tutorias.repository.TutoriaRepository;
 import com.example.tutorias.specification.TutoriaSpecification;
@@ -33,16 +35,19 @@ public class TutoriaService {
     private final TutorRepository tutorRepository;
     private final MateriaRepository materiaRepository;
     private final InscripcionRepository inscripcionRepository;
+    private final PersonaRepository personaRepository;
 
     public TutoriaService(
             TutoriaRepository tutoriaRepository,
             TutorRepository tutorRepository,
             MateriaRepository materiaRepository,
-            InscripcionRepository inscripcionRepository) {
+            InscripcionRepository inscripcionRepository,
+            PersonaRepository personaRepository) {
         this.tutoriaRepository = tutoriaRepository;
         this.tutorRepository = tutorRepository;
         this.materiaRepository = materiaRepository;
         this.inscripcionRepository = inscripcionRepository;
+        this.personaRepository = personaRepository;
     }
 
     @Transactional
@@ -152,7 +157,39 @@ public class TutoriaService {
                 ? 0
                 : inscripcionRepository.countByTutoriaIdAndStatus(tutoria.getId(), InscripcionStatus.ACTIVA);
 
-        return TutoriaResponse.from(tutoria, cantidadInscriptos);
+        String tutorNombre = null;
+        Long tutorId = null;
+        if (tutoria.getTutor() != null) {
+            Tutor tutor = tutoria.getTutor();
+            tutorId = tutor.getId();
+            tutorNombre = tutor.getNombre() + " " + tutor.getApellido();
+        } else if (tutoria.getTutorId() != null) {
+            tutorId = tutoria.getTutorId();
+            tutorNombre = personaRepository.findById(tutoria.getTutorId())
+                    .map(p -> p.getNombre() + " " + p.getApellido())
+                    .orElse(null);
+        }
+
+        return TutoriaResponse.builder()
+                .id(tutoria.getId())
+                .nombre(tutoria.getNombre())
+                .descripcion(tutoria.getDescripcion())
+                .fecha(tutoria.getFecha())
+                .horaInicio(tutoria.getHoraInicio())
+                .horaFin(tutoria.getHoraFin())
+                .cupo(tutoria.getCupo())
+                .ubicacion(tutoria.getUbicacion())
+                .linkVirtual(tutoria.getLinkVirtual())
+                .linkDrive(tutoria.getLinkDrive())
+                .modalidad(tutoria.getModalidad())
+                .estado(tutoria.getEstado())
+                .tutorId(tutorId)
+                .tutorNombre(tutorNombre)
+                .materiaId(tutoria.getMateria() != null ? tutoria.getMateria().getId() : null)
+                .materiaNombre(tutoria.getMateria() != null ? tutoria.getMateria().getNombre() : null)
+                .cantidadInscriptos(cantidadInscriptos)
+                .sede(tutoria.getSede() != null ? tutoria.getSede() : null)
+                .build();
     }
 
     private void validarHorarios(CrearTutoriaRequest request) {

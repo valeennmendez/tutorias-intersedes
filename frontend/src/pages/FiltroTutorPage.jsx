@@ -197,7 +197,7 @@ export default function FiltroTutorPage() {
 																	<CardTitle className="text-xl text-slate-900">
 																		{tutoria.materiaNombre}
 																	</CardTitle>
-																	<CardDescription>{tutoria.tutorNombre}</CardDescription>
+																	<p className="text-sm text-slate-500">{tutoria.tutorNombre}</p>
 																</div>
 
 																<div className="text-left sm:text-right">
@@ -212,9 +212,6 @@ export default function FiltroTutorPage() {
 														<CardContent className="space-y-4 pt-0">
 															<div className="flex flex-col gap-1 text-sm">
 																<p className="text-slate-600">{tutoria.nombre}</p>
-																<p className="text-slate-700">
-																	<span className="font-medium">Tutor:</span> {tutoria.tutorNombre}
-																</p>
 																{tutoria.linkDrive ? (
 																	<a
 																		href={tutoria.linkDrive}
