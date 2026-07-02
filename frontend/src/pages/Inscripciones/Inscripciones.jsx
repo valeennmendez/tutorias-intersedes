@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,12 +30,14 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import toast from "react-hot-toast";
 import { axiosInstance } from "@/utils/axios";
+import { useAuthStore } from "@/store/auth.store";
 
 export function MisInscripciones() {
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [inscripciones, setInscripciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [loading, setLoading] = useState(null);
+  const [detalleAbierto, setDetalleAbierto] = useState(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [selectedInscripcion, setSelectedInscripcion] = useState(null);
   const [feedbackData, setFeedbackData] = useState({
@@ -46,7 +48,6 @@ export function MisInscripciones() {
 
   // 1. Carga de datos: reemplaza al Server Component (page.tsx)
   const cargarInscripciones = useCallback(async () => {
-    setCargando(true);
     try {
       const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
       setInscripciones(res.data);
@@ -58,8 +59,19 @@ export function MisInscripciones() {
   }, []);
 
   useEffect(() => {
-    cargarInscripciones();
-  }, [cargarInscripciones]);
+    const cargarInicial = async () => {
+      try {
+        const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
+        setInscripciones(res.data);
+      } catch {
+        toast.error("No se pudieron cargar las inscripciones");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarInicial();
+  }, []);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -122,6 +134,10 @@ export function MisInscripciones() {
     setFeedbackDialogOpen(true);
   };
 
+  const toggleDetalle = (id) => {
+    setDetalleAbierto((actual) => (actual === id ? null : id));
+  };
+
   const getStatusBadge = (status, fecha) => {
     const isPast = new Date(fecha) < today;
     if (status === "inscripto" && !isPast) {
@@ -147,6 +163,10 @@ export function MisInscripciones() {
     const isPast = new Date(inscripcion.tutoria.fecha) < today;
     const canLeaveFeedback =
       isPast && !hasFeedback && inscripcion.status !== "cancelada";
+    const puedeGestionar =
+      Number(inscripcion.tutoria.tutorId) === Number(user?.id) &&
+      (user?.role === "tutor" || user?.role === "admin");
+    const detalleVisible = detalleAbierto === inscripcion.id;
 
     return (
       <Card>
@@ -222,6 +242,44 @@ export function MisInscripciones() {
                       }`}
                     />
                   ))}
+                </div>
+              )}
+              <div className="pt-1">
+                <Button variant="outline" size="sm" onClick={() => toggleDetalle(inscripcion.id)}>
+                  {detalleVisible ? "Ocultar detalles" : "Ver detalles"}
+                </Button>
+              </div>
+              {detalleVisible && (
+                <div className="mt-3 grid gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
+                  {inscripcion.tutoria.linkDrive ? (
+                    <div className="sm:col-span-2">
+                      <p className="font-semibold text-slate-900">Carpeta de Drive</p>
+                      <a href={inscripcion.tutoria.linkDrive} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-2">
+                        Abrir carpeta compartida
+                      </a>
+                    </div>
+                  ) : null}
+                  {inscripcion.tutoria.modalidad === "virtual" && inscripcion.tutoria.link_virtual ? (
+                    <div className="sm:col-span-2">
+                      <p className="font-semibold text-slate-900">Google Meet</p>
+                      <a href={inscripcion.tutoria.link_virtual} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-2">
+                        Ir a la reunión virtual
+                      </a>
+                    </div>
+                  ) : null}
+                  {inscripcion.tutoria.modalidad === "presencial" && inscripcion.tutoria.ubicacion ? (
+                    <div className="sm:col-span-2">
+                      <p className="font-semibold text-slate-900">Ubicación</p>
+                      <p>{inscripcion.tutoria.ubicacion}</p>
+                    </div>
+                  ) : null}
+                  {puedeGestionar ? (
+                    <div className="sm:col-span-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link to="/dashboard/panel-tutor">Gestionar en Panel Tutor</Link>
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>

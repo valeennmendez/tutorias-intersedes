@@ -48,6 +48,15 @@ public class TutoriaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('TUTOR')")
+    public ResponseEntity<TutoriaResponse> actualizarTutoria(
+            @PathVariable Long id,
+            Principal principal,
+            @Valid @RequestBody CrearTutoriaRequest request) {
+        return ResponseEntity.ok(tutoriaService.actualizarTutoria(id, principal.getName(), request));
+    }
+
     /* * COMENTADO POR Dounchers - RF-03
      * Este método fue reemplazado por el nuevo obtenerTutorias() de abajo, 
      * que ya incluye la lógica de traer todas las tutorías si no se le pasan filtros,

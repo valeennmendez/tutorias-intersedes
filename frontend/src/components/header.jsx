@@ -65,7 +65,8 @@ export function DashboardHeader({ profile }) {
 	];
 
 	if (profile.role === "tutor" || profile.role === "admin") {
-		navItems.push({ href: "/tutor", label: "Panel Tutor", icon: GraduationCap });
+		navItems.push({ href: "/dashboard/mis-inscripciones", label: "Mis Inscripciones", icon: Calendar });
+		navItems.push({ href: "/dashboard/panel-tutor", label: "Panel Tutor", icon: GraduationCap });
 		navItems.push({ href: "/dashboard/gestionar-avisos", label: "Gestionar Avisos", icon: Bell });
 	}
 

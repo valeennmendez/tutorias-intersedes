@@ -208,13 +208,6 @@ export default function FiltroTutorPage() {
 																		<p className="font-semibold text-slate-900">Modalidad</p>
 																		<p>{tutoria.modalidad}</p>
 																	</div>
-
-																	{tutoria.ubicacion ? (
-																		<div>
-																			<p className="font-semibold text-slate-900">Ubicación</p>
-																			<p>{tutoria.ubicacion}</p>
-																		</div>
-																	) : null}
 																</div>
 															) : null}
 														</CardContent>

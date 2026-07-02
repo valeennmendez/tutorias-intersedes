@@ -100,6 +100,64 @@ public class TutoriaService {
     }
 
     @Transactional
+    public TutoriaResponse actualizarTutoria(Long tutoriaId, String emailTutor, CrearTutoriaRequest request) {
+        validarHorarios(request);
+        validarModalidad(request);
+
+        Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoria no encontrada"));
+
+        Tutor tutor = tutorRepository.findByEmail(emailTutor)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor no encontrado"));
+
+        if (tutoria.getTutor() == null || !tutoria.getTutor().getId().equals(tutor.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para editar esta tutoria");
+        }
+
+        if (!tutoria.getTutor().getId().equals(request.getTutorId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes reasignar la tutoria a otro tutor");
+        }
+
+        Materia materia = materiaRepository.findById(request.getMateriaId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Materia no encontrada"));
+
+        boolean horarioOcupado = tutoriaRepository.findAll().stream()
+                .filter(t -> t.getId() != null && !t.getId().equals(tutoriaId))
+                .filter(t -> t.getTutor() != null && t.getTutor().getId().equals(tutor.getId()))
+                .filter(t -> t.getEstado() == EstadoTutoria.ACTIVA)
+                .filter(t -> t.getFecha() != null && t.getFecha().equals(request.getFecha()))
+                .anyMatch(t -> t.getHoraInicio().isBefore(request.getHoraFin()) && t.getHoraFin().isAfter(request.getHoraInicio()));
+
+        if (request.getCupo() <= 0 || request.getCupo() > 50) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El cupo debe ser un valor entre 1 y 50");
+        }
+
+        if (horarioOcupado) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El tutor ya tiene una tutoria en ese horario");
+        }
+
+        if(request.getSede() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La sede es obligatoria");
+        }
+
+        tutoria.setNombre(request.getNombre());
+        tutoria.setDescripcion(request.getDescripcion());
+        tutoria.setFecha(request.getFecha());
+        tutoria.setHoraInicio(request.getHoraInicio());
+        tutoria.setHoraFin(request.getHoraFin());
+        tutoria.setModalidad(request.getModalidad());
+        tutoria.setUbicacion(request.getUbicacion());
+        tutoria.setLinkVirtual(request.getLinkVirtual());
+        tutoria.setLinkDrive(request.getLinkDrive());
+        tutoria.setCupo(request.getCupo());
+        tutoria.setMateria(materia);
+        tutoria.setSede(request.getSede());
+
+        Tutoria guardada = tutoriaRepository.save(tutoria);
+        return toResponse(guardada);
+    }
+
+    @Transactional
     public void eliminarTutoria(Long tutoriaId, String emailTutor) {
         Tutoria tutoria = tutoriaRepository.findById(tutoriaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutoria no encontrada"));
