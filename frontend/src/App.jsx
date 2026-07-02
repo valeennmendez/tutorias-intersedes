@@ -11,6 +11,7 @@ import ValidacionTutorPage from "./pages/ValidacionTutorPage";
 import FeedbackTutorPage from "./pages/FeedbackTutor";
 import ProtecetedRoute from "./components/ProtectedRoute";
 import CrearTutoriaPage from "./pages/CrearTutoriaPage";
+import PanelTutorPage from "./pages/PanelTutor/PanelTutorPage";
 import LayoutNavbar from "./components/layouts/LayoutNavbar";
 import GestionarAvisos from "./pages/GestionarAvisos/GestionarAvisos";
 import BandejaAvisos from "./pages/BandejaAvisos/BandejaAvisos";
@@ -39,6 +40,7 @@ function App() {
 						<Route path="/validacion-tutores" element={<ValidacionTutorPage />} />
 						<Route path="/feedback-tutores" element={<FeedbackTutorPage />} />
 						<Route path="/dashboard" element={<Home />} />
+						<Route path="/dashboard/panel-tutor" element={<PanelTutorPage />} />
 						<Route path="/dashboard/perfil" element={<PerfilTutorPage />} />
 						<Route path="/prueba" element={<PruebaPage />} />
 						<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
