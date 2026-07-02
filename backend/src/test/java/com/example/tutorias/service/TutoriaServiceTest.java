@@ -10,6 +10,7 @@ import com.example.tutorias.entity.Tutor;
 import com.example.tutorias.entity.Tutoria;
 import com.example.tutorias.repository.InscripcionRepository;
 import com.example.tutorias.repository.MateriaRepository;
+import com.example.tutorias.repository.PersonaRepository;
 import com.example.tutorias.repository.TutorRepository;
 import com.example.tutorias.repository.TutoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,9 +55,12 @@ class TutoriaServiceTest {
     @Mock
     private InscripcionRepository inscripcionRepository;
 
+    @Mock
+    private PersonaRepository personaRepository;
+
     @BeforeEach
     void setUp() {
-        tutoriaService = new TutoriaService(tutoriaRepository, tutorRepository, materiaRepository, inscripcionRepository);
+        tutoriaService = new TutoriaService(tutoriaRepository, tutorRepository, materiaRepository, inscripcionRepository, personaRepository);
     }
 
     @Test

@@ -25,6 +25,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { axiosInstance } from "@/utils/axios";
 import { useAuthStore } from "@/store/auth.store";
@@ -49,6 +50,7 @@ export default function FiltroTutorPage() {
 	const [cargandoInscripciones, setCargandoInscripciones] = useState(true);
 	const [dialogoAbierto, setDialogoAbierto] = useState(null);
 	const [inscribiendo, setInscribiendo] = useState(false);
+	const [cancelando, setCancelando] = useState(null);
 
 	useEffect(() => {
 		const cargarTutorias = async () => {
@@ -133,6 +135,29 @@ export default function FiltroTutorPage() {
 			toast.error(msg);
 		} finally {
 			setInscribiendo(false);
+		}
+	};
+
+	const handleCancelarInscripcion = async (tutoriaId) => {
+		setCancelando(tutoriaId);
+		try {
+			await axiosInstance.put(`/inscripciones/tutoria/${tutoriaId}/cancelar`);
+			toast.success("Inscripción cancelada");
+			setInscripcionesActivas((prev) => {
+				const next = new Set(prev);
+				next.delete(tutoriaId);
+				return next;
+			});
+		} catch (error) {
+			const data = error.response?.data;
+			const msg =
+				data?.detalle ||
+				data?.error ||
+				error.message ||
+				"Error al cancelar la inscripción";
+			toast.error(msg);
+		} finally {
+			setCancelando(null);
 		}
 	};
 
@@ -245,14 +270,22 @@ export default function FiltroTutorPage() {
 																</Button>
 																{user?.role === "alumno" ? (
 																	inscripcionesActivas.has(tutoria.id) ? (
-																		<Button
-																			type="button"
-																			variant="outline"
-																			disabled
-																			className="border-slate-300 text-slate-400 cursor-not-allowed"
-																		>
-																			Ya inscripto
-																		</Button>
+																		<>
+																			<Badge className="bg-green-600">Ya inscripto</Badge>
+																			<Button
+																				type="button"
+																				variant="destructive"
+																				className="border border-red-400"
+																				onClick={() => handleCancelarInscripcion(tutoria.id)}
+																				disabled={cancelando === tutoria.id}
+																			>
+																				{cancelando === tutoria.id ? (
+																					<Loader2 className="h-4 w-4 animate-spin" />
+																				) : (
+																					"Cancelar inscripción"
+																				)}
+																			</Button>
+																		</>
 																	) : (
 																		<Button
 																			type="button"
