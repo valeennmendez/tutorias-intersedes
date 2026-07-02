@@ -58,6 +58,19 @@ export const useAuthStore = create((set) => ({
         }
     },
 
+    updateLocalUser: (partialUser) => {
+        set((state) => {
+            const nextUser = {
+                ...state.user,
+                ...partialUser,
+            };
+
+            localStorage.setItem("user", JSON.stringify(nextUser));
+
+            return { user: nextUser };
+        });
+    },
+
     registrarUsuario: async(data) => {
         try {
             const res = await axiosInstance.post("/auth/register", data);

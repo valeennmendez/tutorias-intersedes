@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
 import LoginPage from "./pages/LoginPage";
@@ -15,6 +15,7 @@ import LayoutNavbar from "./components/layouts/LayoutNavbar";
 import GestionarAvisos from "./pages/GestionarAvisos/GestionarAvisos";
 import BandejaAvisos from "./pages/BandejaAvisos/BandejaAvisos";
 import { MisInscripciones } from "./pages/Inscripciones/Inscripciones";
+import PerfilTutorPage from "./pages/PerfilTutor/PerfilTutorPage";
 import { useAuthStore } from "./store/auth.store";
 
 function App() {
@@ -34,9 +35,11 @@ function App() {
 				{/* Rutas protegidas agrupadas */}
 				<Route element={<ProtecetedRoute />}>
 					<Route element={<LayoutNavbar />}>
+						<Route path="/" element={<Navigate to="/login" replace />} />
 						<Route path="/validacion-tutores" element={<ValidacionTutorPage />} />
 						<Route path="/feedback-tutores" element={<FeedbackTutorPage />} />
 						<Route path="/dashboard" element={<Home />} />
+						<Route path="/dashboard/perfil" element={<PerfilTutorPage />} />
 						<Route path="/prueba" element={<PruebaPage />} />
 						<Route path="/postulacion-tutor" element={<PostulacionTutorClient />} />
 						<Route path="/crear-tutoria" element={<CrearTutoriaPage />} />

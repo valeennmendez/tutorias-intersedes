@@ -1,6 +1,7 @@
 package com.example.tutorias.service;
 
 import com.example.tutorias.dto.auth.CrearAdminRequestDTO;
+import com.example.tutorias.dto.auth.ActualizarUsuarioRequestDTO;
 import com.example.tutorias.dto.auth.LoginRequestDTO;
 import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
@@ -153,6 +154,31 @@ public class AuthServiceImp implements AuthService {
         Persona persona = personaRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema."));
         
+        return new UsuarioResponseDTO(
+            persona.getId(),
+            persona.getNombre(),
+            persona.getApellido(),
+            persona.getEmail(),
+            persona.getRole()
+        );
+    }
+
+    @Override
+    public UsuarioResponseDTO actualizarUsuario(Long id, String emailLogueado, ActualizarUsuarioRequestDTO request) {
+        Persona personaLogueada = personaRepository.findByEmail(emailLogueado)
+            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado."));
+
+        Persona persona = personaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema."));
+
+        if (!personaLogueada.getId().equals(persona.getId()) && personaLogueada.getRole() != Role.ADMIN) {
+            throw new ReglaNegocioException("No tenés permisos para editar este perfil.");
+        }
+
+        persona.setNombre(request.getNombre().trim());
+        persona.setApellido(request.getApellido().trim());
+        personaRepository.save(persona);
+
         return new UsuarioResponseDTO(
             persona.getId(),
             persona.getNombre(),

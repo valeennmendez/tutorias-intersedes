@@ -1,5 +1,6 @@
 package com.example.tutorias.service;
 import com.example.tutorias.dto.auth.CrearAdminRequestDTO;
+import com.example.tutorias.dto.auth.ActualizarUsuarioRequestDTO;
 import com.example.tutorias.dto.auth.LoginRequestDTO;
 import com.example.tutorias.dto.auth.LoginResponseDTO;
 import com.example.tutorias.dto.auth.RegistroRequestDTO;
@@ -10,4 +11,5 @@ public interface AuthService {
     void crearAdmin(CrearAdminRequestDTO crearAdminRequest);
     LoginResponseDTO loginUser(LoginRequestDTO loginRequest);
     UsuarioResponseDTO getUsuarioById(Long id);
+    UsuarioResponseDTO actualizarUsuario(Long id, String emailLogueado, ActualizarUsuarioRequestDTO request);
 }

@@ -13,7 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, BookOpen, Calendar, User, LogOut, Menu, GraduationCap, ClipboardList, Bell, BellRing, Loader2 } from "lucide-react";
+import { Home, BookOpen, Calendar, User, LogOut, Menu, ClipboardList, Bell, BellRing, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuthStore } from "../store/auth.store";
@@ -65,7 +65,6 @@ export function DashboardHeader({ profile }) {
 	];
 
 	if (profile.role === "tutor" || profile.role === "admin") {
-		navItems.push({ href: "/tutor", label: "Panel Tutor", icon: GraduationCap });
 		navItems.push({ href: "/dashboard/gestionar-avisos", label: "Gestionar Avisos", icon: Bell });
 	}
 
