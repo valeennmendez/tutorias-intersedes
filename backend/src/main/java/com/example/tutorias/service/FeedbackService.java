@@ -61,6 +61,7 @@ public class FeedbackService {
         
         feedback.setEsAnonimo(request.isEsAnonimo());
 
+        inscripcion.setFeedback(feedback);
         feedbackRepository.save(feedback);
     }
 
