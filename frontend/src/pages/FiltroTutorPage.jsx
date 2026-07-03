@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import {
 	CalendarDays,
 	ChevronDown,
@@ -6,6 +7,7 @@ import {
 	ExternalLink,
 	Loader2,
 	Search,
+	ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -42,6 +44,7 @@ const DIAS_SEMANA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Vier
 
 export default function FiltroTutorPage() {
 	const { user } = useAuthStore();
+	const location = useLocation();
 	const [busqueda, setBusqueda] = useState("");
 	const [tutorias, setTutorias] = useState([]);
 	const [cargando, setCargando] = useState(true);
@@ -51,6 +54,7 @@ export default function FiltroTutorPage() {
 	const [dialogoAbierto, setDialogoAbierto] = useState(null);
 	const [inscribiendo, setInscribiendo] = useState(false);
 	const [cancelando, setCancelando] = useState(null);
+	const mostrarSoloMias = new URLSearchParams(location.search).get("origen") === "panel-tutor";
 
 	useEffect(() => {
 		const cargarTutorias = async () => {
@@ -95,10 +99,11 @@ export default function FiltroTutorPage() {
 
 	const tutoriasFiltradas = useMemo(() => {
 		const termino = busqueda.trim().toLowerCase();
+		const base = mostrarSoloMias ? tutorias.filter((tutoria) => Number(tutoria.tutorId) === Number(user?.id)) : tutorias;
 
-		if (!termino) return tutorias;
+		if (!termino) return base;
 
-		return tutorias.filter((tutoria) => {
+		return base.filter((tutoria) => {
 			const textoBuscable = [
 				tutoria.tutorNombre,
 				tutoria.materiaNombre,
@@ -111,7 +116,7 @@ export default function FiltroTutorPage() {
 
 			return textoBuscable.includes(termino);
 		});
-	}, [busqueda, tutorias]);
+	}, [busqueda, tutorias, mostrarSoloMias, user?.id]);
 
 	const toggleDetalles = (id) => {
 		setTutorExpandido((actual) => (actual === id ? null : id));
@@ -167,12 +172,28 @@ export default function FiltroTutorPage() {
 		<div className="min-h-screen bg-[#F7F9FB]">
 			<div className="px-4 py-10">
 				<div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+					{mostrarSoloMias ? (
+						<div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+							<div>
+								<p className="text-sm font-medium text-slate-500">Desde Panel Tutor</p>
+								<h2 className="text-lg font-semibold text-slate-900">Tus tutorías</h2>
+							</div>
+							<Button asChild variant="outline" className="border-sky-200 text-sky-700 hover:bg-sky-50 hover:text-sky-800">
+								<Link to="/dashboard/panel-tutor" className="inline-flex items-center gap-2">
+									<ArrowLeft className="h-4 w-4" />
+									Volver al panel
+								</Link>
+							</Button>
+						</div>
+					) : null}
 
 					<Card className="border-slate-200 shadow-md">
 						<CardHeader className="pb-4">
-							<CardTitle className="text-xl text-slate-900">Buscar tutorías disponibles</CardTitle>
+							<CardTitle className="text-xl text-slate-900">{mostrarSoloMias ? "Mis tutorías" : "Buscar tutorías disponibles"}</CardTitle>
 							<CardDescription>
-								Escribí cualquier dato para filtrar las tutorías según la materia o el tutor.
+								{mostrarSoloMias
+									? "Acá ves solamente todas las tutorías que vos creaste."
+									: "Escribí cualquier dato para filtrar las tutorías según la materia o el tutor."}
 							</CardDescription>
 						</CardHeader>
 
