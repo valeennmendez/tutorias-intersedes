@@ -206,17 +206,17 @@ export function MisInscripciones() {
                 {inscripcion.tutoria.modalidad && (
                   <Badge
                     variant={
-                      inscripcion.tutoria.modalidad === "virtual"
+                      inscripcion.tutoria.modalidad?.toLowerCase() === "virtual"
                         ? "secondary"
                         : "outline"
                     }
                   >
-                    {inscripcion.tutoria.modalidad === "virtual" ? (
+                    {inscripcion.tutoria.modalidad?.toLowerCase() === "virtual" ? (
                       <Video className="h-3 w-3 mr-1" />
                     ) : (
                       <MapPin className="h-3 w-3 mr-1" />
                     )}
-                    {inscripcion.tutoria.modalidad === "virtual"
+                    {inscripcion.tutoria.modalidad?.toLowerCase() === "virtual"
                       ? "Virtual"
                       : "Presencial"}
                   </Badge>
@@ -245,7 +245,7 @@ export function MisInscripciones() {
                   )}
                 </div>
               )}
-              {inscripcion.tutoria.modalidad === "virtual" &&
+              {inscripcion.tutoria.modalidad?.toLowerCase() === "virtual" &&
                 inscripcion.tutoria.linkVirtual && (
                   <a
                     href={inscripcion.tutoria.linkVirtual}
@@ -256,7 +256,7 @@ export function MisInscripciones() {
                     Enlace a la reunión virtual
                   </a>
                 )}
-              {inscripcion.tutoria.modalidad === "presencial" &&
+              {inscripcion.tutoria.modalidad?.toLowerCase() === "presencial" &&
                 inscripcion.tutoria.ubicacion && (
                   <p className="text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 inline mr-1" />
@@ -264,7 +264,8 @@ export function MisInscripciones() {
                   </p>
                 )}
               <div className="pt-1">
-                <Button variant="outline" size="sm" onClick={() => toggleDetalle(inscripcion.id)}>
+                <Button size="sm" onClick={() => toggleDetalle(inscripcion.id)}
+                  className="cursor-pointer gap-1.5 bg-slate-50 text-slate-700 border border-slate-300 hover:bg-slate-100 hover:text-slate-900">
                   {detalleVisible ? "Ocultar detalles" : "Ver detalles"}
                 </Button>
               </div>
@@ -278,7 +279,7 @@ export function MisInscripciones() {
                       </a>
                     </div>
                   ) : null}
-                  {inscripcion.tutoria.modalidad === "virtual" && inscripcion.tutoria.linkVirtual ? (
+                  {inscripcion.tutoria.modalidad?.toLowerCase() === "virtual" && inscripcion.tutoria.linkVirtual ? (
                     <div className="sm:col-span-2">
                       <p className="font-semibold text-slate-900">Google Meet</p>
                       <a href={inscripcion.tutoria.linkVirtual} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-2">
@@ -286,7 +287,7 @@ export function MisInscripciones() {
                       </a>
                     </div>
                   ) : null}
-                  {inscripcion.tutoria.modalidad === "presencial" && inscripcion.tutoria.ubicacion ? (
+                  {inscripcion.tutoria.modalidad?.toLowerCase() === "presencial" && inscripcion.tutoria.ubicacion ? (
                     <div className="sm:col-span-2">
                       <p className="font-semibold text-slate-900">Ubicación</p>
                       <p>{inscripcion.tutoria.ubicacion}</p>
@@ -302,35 +303,40 @@ export function MisInscripciones() {
                 </div>
               )}
             </div>
-            {showActions && (
-              <div className="flex gap-2 sm:flex-col">
-                {!isPast && inscripcion.status === "ACTIVA" && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleCancelar(inscripcion)}
-                    disabled={loading === inscripcion.id}
-                  >
-                    {loading === inscripcion.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Cancelar"
-                    )}
-                  </Button>
-                )}
-                {isPast && inscripcion.status === "ACTIVA" && (
-                  <Button size="sm" onClick={() => openFeedbackDialog(inscripcion.id)}>
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    Dejar feedback
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/dashboard/tutorias/${inscripcion.tutoria.id || inscripcion.tutoriaId}`}>
-                    Ver detalles
-                  </Link>
-                </Button>
-              </div>
-            )}
+              {showActions && (
+                <div className="flex flex-wrap gap-2">
+                  {!isPast && inscripcion.status === "ACTIVA" && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleCancelar(inscripcion)}
+                      disabled={loading === inscripcion.id}
+                    >
+                      {loading === inscripcion.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Cancelar"
+                      )}
+                    </Button>
+                  )}
+                  {isPast && inscripcion.status === "ACTIVA" && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" onClick={() => openFeedbackDialog(inscripcion.id)}
+                        className="cursor-pointer gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800">
+                        <MessageSquare className="h-4 w-4" />
+                        Dejar feedback
+                      </Button>
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link to={`/feedback-tutores?inscripcionId=${inscripcion.id}`}
+                          className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 hover:text-amber-800">
+                          <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+                          Ver feedbacks
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>

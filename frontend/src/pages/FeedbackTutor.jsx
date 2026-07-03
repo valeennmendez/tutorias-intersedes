@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MessageCircle, Star } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { axiosInstance } from "@/utils/axios";
 
 export default function FeedbackTutorPage() {
+    const [searchParams] = useSearchParams();
     const [inscripciones, setInscripciones] = useState([]);
     const [cargandoDatos, setCargandoDatos] = useState(true);
 
@@ -21,6 +23,8 @@ export default function FeedbackTutorPage() {
 
     // 1. Cargar las inscripciones válidas desde la base de datos
     useEffect(() => {
+        const preSeleccionada = searchParams.get("inscripcionId");
+
         const cargarMisInscripciones = async () => {
             try {
                 setCargandoDatos(true);
@@ -28,7 +32,9 @@ export default function FeedbackTutorPage() {
                 const lista = response.data || [];
                 setInscripciones(lista);
 
-                if (lista.length > 0) {
+                if (preSeleccionada && lista.some((i) => i.id.toString() === preSeleccionada)) {
+                    setInscripcionSeleccionadaId(preSeleccionada);
+                } else if (lista.length > 0) {
                     setInscripcionSeleccionadaId(lista[0].id.toString());
                 }
             } catch (error) {
