@@ -149,7 +149,7 @@ export default function PanelTutorPage() {
 									<CardDescription>Tutorías programadas para los próximos días</CardDescription>
 								</div>
 								<Button variant="outline" size="sm" asChild>
-									<Link to="/dashboard/tutorias">Ver todas</Link>
+									<Link to="/dashboard/tutorias?origen=panel-tutor">Ver todas</Link>
 								</Button>
 							</CardHeader>
 							<CardContent className="space-y-3 pt-0">
