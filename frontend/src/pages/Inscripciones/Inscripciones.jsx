@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import { useAuthStore } from "@/store/auth.store";
 export function MisInscripciones() {
   const { user } = useAuthStore();
   const [inscripciones, setInscripciones] = useState([]);
+  const [tutorias, setTutorias] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [loading, setLoading] = useState(null);
   const [detalleAbierto, setDetalleAbierto] = useState(null);
@@ -46,12 +47,33 @@ export function MisInscripciones() {
     es_anonimo: false,
   });
 
-  // 1. Carga de datos: reemplaza al Server Component (page.tsx)
+  const tutoriasMap = useMemo(() => {
+    const map = {};
+    tutorias.forEach((t) => { map[t.id] = t; });
+    return map;
+  }, [tutorias]);
+
+  const inscripcionesConTutoria = useMemo(() => {
+    return inscripciones.map((i) => ({
+      ...i,
+      tutoria: tutoriasMap[i.tutoriaId] || {},
+    }));
+  }, [inscripciones, tutoriasMap]);
+
   const cargarInscripciones = useCallback(async () => {
     try {
       const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
+      console.log("Inscripciones recibidas:", res.data);
       setInscripciones(res.data);
-    } catch {
+
+      const tutRes = await axiosInstance.get("/tutorias").catch((e) => {
+        console.warn("Error al cargar tutorias:", e.response?.status, e.message);
+        return null;
+      });
+      console.log("Tutorias recibidas:", tutRes?.data);
+      setTutorias(tutRes?.data || []);
+    } catch (err) {
+      console.error("Error cargando inscripciones:", err.response?.status, err.message);
       toast.error("No se pudieron cargar las inscripciones");
     } finally {
       setCargando(false);
@@ -62,8 +84,17 @@ export function MisInscripciones() {
     const cargarInicial = async () => {
       try {
         const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
+        console.log("Inscripciones recibidas:", res.data);
         setInscripciones(res.data);
-      } catch {
+
+        const tutRes = await axiosInstance.get("/tutorias").catch((e) => {
+          console.warn("Error al cargar tutorias:", e.response?.status, e.message);
+          return null;
+        });
+        console.log("Tutorias recibidas:", tutRes?.data);
+        setTutorias(tutRes?.data || []);
+      } catch (err) {
+        console.error("Error cargando inscripciones:", err.response?.status, err.message);
         toast.error("No se pudieron cargar las inscripciones");
       } finally {
         setCargando(false);
@@ -76,25 +107,29 @@ export function MisInscripciones() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const proximasInscripciones = inscripciones.filter(
-    (i) => i.status === "inscripto" && new Date(i.tutoria.fecha) >= today
-  );
-
-  const pasadasInscripciones = inscripciones.filter(
+  const proximasInscripciones = inscripcionesConTutoria.filter(
     (i) =>
-      i.status === "asistio" ||
-      (i.status === "inscripto" && new Date(i.tutoria.fecha) < today)
+      i.status === "ACTIVA" &&
+      (!i.tutoria.fecha || new Date(i.tutoria.fecha) >= today)
   );
 
-  const canceladasInscripciones = inscripciones.filter(
-    (i) => i.status === "cancelada" || i.status === "no_asistio"
+  const pasadasInscripciones = inscripcionesConTutoria.filter(
+    (i) =>
+      i.status === "ACTIVA" &&
+      i.tutoria.fecha &&
+      new Date(i.tutoria.fecha) < today
+  );
+
+  const canceladasInscripciones = inscripcionesConTutoria.filter(
+    (i) => i.status === "CANCELADA"
   );
 
   // 2. Cancelar: ahora llama a tu API en vez de Supabase directo
-  const handleCancelar = async (inscripcionId) => {
-    setLoading(inscripcionId);
+  const handleCancelar = async (inscripcion) => {
+    const tutoriaId = inscripcion.tutoriaId || inscripcion.tutoria?.id;
+    setLoading(inscripcion.id);
     try {
-      await axiosInstance.put(`/inscripciones/tutoria/${inscripcionId}/cancelar`);
+      await axiosInstance.put(`/inscripciones/tutoria/${tutoriaId}/cancelar`);
 
       toast.success("Inscripción cancelada");
       await cargarInscripciones();
@@ -140,29 +175,21 @@ export function MisInscripciones() {
 
   const getStatusBadge = (status, fecha) => {
     const isPast = new Date(fecha) < today;
-    if (status === "inscripto" && !isPast) {
+    if (status === "ACTIVA" && !isPast) {
       return <Badge className="bg-green-600">Confirmada</Badge>;
     }
-    if (status === "inscripto" && isPast) {
+    if (status === "ACTIVA" && isPast) {
       return <Badge variant="secondary">Pendiente feedback</Badge>;
     }
-    if (status === "asistio") {
-      return <Badge className="bg-blue-600">Asistió</Badge>;
-    }
-    if (status === "cancelada") {
+    if (status === "CANCELADA") {
       return <Badge variant="destructive">Cancelada</Badge>;
-    }
-    if (status === "no_asistio") {
-      return <Badge variant="destructive">No asistió</Badge>;
     }
     return <Badge variant="outline">{status}</Badge>;
   };
 
   const InscripcionCard = ({ inscripcion, showActions = false }) => {
-    const hasFeedback = inscripcion.feedback && inscripcion.feedback.length > 0;
-    const isPast = new Date(inscripcion.tutoria.fecha) < today;
-    const canLeaveFeedback =
-      isPast && !hasFeedback && inscripcion.status !== "cancelada";
+    const isPast =
+      inscripcion.tutoria.fecha && new Date(inscripcion.tutoria.fecha) < today;
     const puedeGestionar =
       Number(inscripcion.tutoria.tutorId) === Number(user?.id) &&
       (user?.role === "tutor" || user?.role === "admin");
@@ -174,45 +201,54 @@ export function MisInscripciones() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="font-medium">{inscripcion.tutoria.titulo}</h4>
+                <h4 className="font-medium">{inscripcion.nombreTutoria}</h4>
                 {getStatusBadge(inscripcion.status, inscripcion.tutoria.fecha)}
-                <Badge
-                  variant={
-                    inscripcion.tutoria.modalidad === "virtual"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {inscripcion.tutoria.modalidad === "virtual" ? (
-                    <Video className="h-3 w-3 mr-1" />
-                  ) : (
-                    <MapPin className="h-3 w-3 mr-1" />
-                  )}
-                  {inscripcion.tutoria.modalidad}
-                </Badge>
+                {inscripcion.tutoria.modalidad && (
+                  <Badge
+                    variant={
+                      inscripcion.tutoria.modalidad === "virtual"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {inscripcion.tutoria.modalidad === "virtual" ? (
+                      <Video className="h-3 w-3 mr-1" />
+                    ) : (
+                      <MapPin className="h-3 w-3 mr-1" />
+                    )}
+                    {inscripcion.tutoria.modalidad === "virtual"
+                      ? "Virtual"
+                      : "Presencial"}
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {inscripcion.tutoria.materia.nombre} -{" "}
-                {inscripcion.tutoria.tutor.nombre}{" "}
-                {inscripcion.tutoria.tutor.apellido}
+                {inscripcion.tutoria.materiaNombre
+                  ? `${inscripcion.tutoria.materiaNombre} - `
+                  : ""}
+                {inscripcion.nombreTutor}
               </p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {format(new Date(inscripcion.tutoria.fecha), "d 'de' MMMM, yyyy", {
-                    locale: es,
-                  })}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {inscripcion.tutoria.hora_inicio.slice(0, 5)} -{" "}
-                  {inscripcion.tutoria.hora_fin.slice(0, 5)}
-                </span>
-              </div>
+              {inscripcion.tutoria.fecha && (
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {format(new Date(inscripcion.tutoria.fecha), "d 'de' MMMM, yyyy", {
+                      locale: es,
+                    })}
+                  </span>
+                  {inscripcion.tutoria.horaInicio && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {inscripcion.tutoria.horaInicio.slice(0, 5)} -{" "}
+                      {inscripcion.tutoria.horaFin?.slice(0, 5)}
+                    </span>
+                  )}
+                </div>
+              )}
               {inscripcion.tutoria.modalidad === "virtual" &&
-                inscripcion.tutoria.link_virtual && (
+                inscripcion.tutoria.linkVirtual && (
                   <a
-                    href={inscripcion.tutoria.link_virtual}
+                    href={inscripcion.tutoria.linkVirtual}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline"
@@ -227,23 +263,6 @@ export function MisInscripciones() {
                     {inscripcion.tutoria.ubicacion}
                   </p>
                 )}
-              {hasFeedback && (
-                <div className="flex items-center gap-1 mt-2">
-                  <span className="text-sm text-muted-foreground">
-                    Tu calificación:
-                  </span>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < (inscripcion.feedback?.[0]?.calificacion || 0)
-                          ? "fill-primary text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
               <div className="pt-1">
                 <Button variant="outline" size="sm" onClick={() => toggleDetalle(inscripcion.id)}>
                   {detalleVisible ? "Ocultar detalles" : "Ver detalles"}
@@ -259,10 +278,10 @@ export function MisInscripciones() {
                       </a>
                     </div>
                   ) : null}
-                  {inscripcion.tutoria.modalidad === "virtual" && inscripcion.tutoria.link_virtual ? (
+                  {inscripcion.tutoria.modalidad === "virtual" && inscripcion.tutoria.linkVirtual ? (
                     <div className="sm:col-span-2">
                       <p className="font-semibold text-slate-900">Google Meet</p>
-                      <a href={inscripcion.tutoria.link_virtual} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-2">
+                      <a href={inscripcion.tutoria.linkVirtual} target="_blank" rel="noreferrer" className="text-sky-700 underline underline-offset-2">
                         Ir a la reunión virtual
                       </a>
                     </div>
@@ -285,11 +304,11 @@ export function MisInscripciones() {
             </div>
             {showActions && (
               <div className="flex gap-2 sm:flex-col">
-                {!isPast && inscripcion.status === "inscripto" && (
+                {!isPast && inscripcion.status === "ACTIVA" && (
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleCancelar(inscripcion.id)}
+                    onClick={() => handleCancelar(inscripcion)}
                     disabled={loading === inscripcion.id}
                   >
                     {loading === inscripcion.id ? (
@@ -299,14 +318,14 @@ export function MisInscripciones() {
                     )}
                   </Button>
                 )}
-                {canLeaveFeedback && (
+                {isPast && inscripcion.status === "ACTIVA" && (
                   <Button size="sm" onClick={() => openFeedbackDialog(inscripcion.id)}>
                     <MessageSquare className="h-4 w-4 mr-1" />
                     Dejar feedback
                   </Button>
                 )}
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/dashboard/tutorias/${inscripcion.tutoria.id}`}>
+                  <Link to={`/dashboard/tutorias/${inscripcion.tutoria.id || inscripcion.tutoriaId}`}>
                     Ver detalles
                   </Link>
                 </Button>
