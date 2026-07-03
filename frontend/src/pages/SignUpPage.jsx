@@ -1,13 +1,15 @@
 import { Hash, Lock, Mail, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import carrerasUNNOBA from "../utils/carreras.js";
 import { useAuthStore } from "../store/auth.store.js";
 import toast from "react-hot-toast";
+import { useCarrerasStore } from "../store/carreras.store.js";
 
 function SignUpPage() {
 	const { registrarUsuario } = useAuthStore();
 	const navigate = useNavigate();
+	const { carreras, fetchCarreras } = useCarrerasStore();
 
 	const [dataRegistro, setDataRegistro] = useState({
 		nombre: "",
@@ -21,6 +23,12 @@ function SignUpPage() {
 		fechanacimiento: "2000-10-20", // YYYY-MM-DD
 		direccion: "Sin Direccion",
 	});
+
+	useEffect(() => {
+		fetchCarreras();
+	}, [fetchCarreras]);
+
+	console.log("Carreras: ", carreras);
 
 	const submitFormulario = async (e) => {
 		e.preventDefault();
@@ -111,17 +119,15 @@ function SignUpPage() {
 									<span className="font-semibold text-slate-800 text-md">Carrera</span>
 									<select
 										defaultValue={""}
-										name=""
-										id=""
 										className="px-1 border shadow-sm font-medium border-slate-300 rounded-md h-8.5"
 										onChange={(e) => setDataRegistro({ ...dataRegistro, carrera: e.target.value })}
 									>
 										<option disabled value={""}>
 											Selecciona tu carrera
 										</option>
-										{carrerasUNNOBA.map((c, idx) => (
-											<option value={c} key={idx}>
-												{c}
+										{carreras.map((carrera) => (
+											<option value={carrera.nombre} key={carrera.id}>
+												{carrera.nombre}
 											</option>
 										))}
 									</select>
