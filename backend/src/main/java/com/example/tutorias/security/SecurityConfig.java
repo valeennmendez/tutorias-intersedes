@@ -115,6 +115,7 @@ public class SecurityConfig {
                 .requestMatchers("/tutores/**").hasAnyRole("TUTOR", "ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/feedback/**").authenticated()
+                .requestMatchers("/carreras/**").permitAll()
 
                 .anyRequest().authenticated()
             )
