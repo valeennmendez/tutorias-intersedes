@@ -180,7 +180,7 @@ export default function FeedbackTutorPage() {
                                             >
                                                 {inscripciones.map((ins) => (
                                                     <option key={ins.id} value={ins.id}>
-                                                        {ins.nombreTutor} {ins.materiaNombre ? `— ${ins.materiaNombre}` : ""}
+                                                        {ins.nombreTutor} {ins.nombreTutoria ? `— ${ins.nombreTutoria}` : ""}
                                                     </option>
                                                 ))}
                                             </select>

@@ -24,7 +24,7 @@ import java.util.List;
 @DiscriminatorValue("Alumno")
 public class Alumno extends Persona {
 
-    public Alumno(String nombre, String apellido, String email, String password, LocalDate fechanacimiento, String direccion, Role role, String dni, Boolean estado, String legajo, int anioInicio, Carrera carrera) {
+    public Alumno(String nombre, String apellido, String email, String password, LocalDate fechanacimiento, String direccion, Role role, String dni, Boolean estado, String legajo, Integer anioInicio, Carrera carrera) {
         super(nombre, apellido, email, password, fechanacimiento, direccion, role);
         this.dni = dni;
         this.estado = estado;
@@ -49,7 +49,7 @@ public class Alumno extends Persona {
     private String legajo;
 
     @Column(nullable = false)
-    private int anioInicio;
+    private Integer anioInicio;
 
     @ManyToOne(fetch = FetchType.LAZY) //carga la carrera sólo si se le pide, por simplicidad asumimos que un alumno sólo tiene una carrera
     @JoinColumn(name = "carrera_id", nullable = false) //crea la fk en la tabla alumno
