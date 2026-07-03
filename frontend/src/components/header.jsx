@@ -87,7 +87,7 @@ export function DashboardHeader({ profile }) {
 				{profile.role !== "admin" && (
 					<nav className="hidden md:flex items-center gap-1">
 						{navItems.map((item) => {
-							const isActive = pathname === item.href;
+							const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
 							return (
 								<Link
 									key={item.href}
@@ -95,7 +95,7 @@ export function DashboardHeader({ profile }) {
 									className={cn(
 										buttonVariants({ variant: isActive ? "secondary" : "ghost", size: "sm" }),
 										"inline-flex items-center gap-2",
-										isActive ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-sky-100 hover:text-sky-900",
+										isActive ? "bg-sky-100 text-sky-900 hover:bg-sky-200" : "hover:bg-sky-100 hover:text-sky-900",
 									)}
 								>
 									<item.icon className="h-4 w-4" />
@@ -222,7 +222,7 @@ export function DashboardHeader({ profile }) {
 							<SheetContent side="right" className="w-64">
 								<nav className="flex flex-col gap-2 mt-8">
 									{navItems.map((item) => {
-										const isActive = pathname === item.href;
+										const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
 										return (
 											<Link
 												key={item.href}
@@ -231,7 +231,7 @@ export function DashboardHeader({ profile }) {
 												className={cn(
 													buttonVariants({ variant: isActive ? "secondary" : "ghost" }),
 													"justify-start inline-flex items-center gap-3",
-													isActive ? "bg-primary/10 text-primary" : "hover:bg-sky-100 hover:text-sky-900",
+													isActive ? "bg-sky-100 text-sky-900" : "hover:bg-sky-100 hover:text-sky-900",
 												)}
 											>
 												<item.icon className="h-4 w-4" />
