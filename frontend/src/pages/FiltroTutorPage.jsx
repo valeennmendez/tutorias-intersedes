@@ -75,7 +75,7 @@ export default function FiltroTutorPage() {
 
 	useEffect(() => {
 		const cargarInscripciones = async () => {
-			if (user?.role !== "alumno") {
+			if (user?.role !== "alumno" && user?.role !== "tutor") {
 				setCargandoInscripciones(false);
 				return;
 			}
@@ -99,7 +99,11 @@ export default function FiltroTutorPage() {
 
 	const tutoriasFiltradas = useMemo(() => {
 		const termino = busqueda.trim().toLowerCase();
-		const base = mostrarSoloMias ? tutorias.filter((tutoria) => Number(tutoria.tutorId) === Number(user?.id)) : tutorias;
+		const base = mostrarSoloMias
+			? tutorias.filter((tutoria) => Number(tutoria.tutorId) === Number(user?.id))
+			: user?.role === "tutor"
+				? tutorias.filter((tutoria) => Number(tutoria.tutorId) !== Number(user?.id))
+				: tutorias;
 
 		if (!termino) return base;
 
@@ -289,7 +293,7 @@ export default function FiltroTutorPage() {
 																		</>
 																	)}
 																</Button>
-																{user?.role === "alumno" ? (
+																{(user?.role === "alumno" || user?.role === "tutor") ? (
 																	inscripcionesActivas.has(tutoria.id) ? (
 																		<>
 																			<Badge className="bg-green-600">Ya inscripto</Badge>

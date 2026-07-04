@@ -1,15 +1,16 @@
 spring:
   application:
-    name: tutorias-intersedes-backend
+    name: tutorias
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/tutorias_intersedes}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tutorias_bd}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:1233}
+    password: ${DB_PASSWORD:2462183}
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     open-in-view: false
       
