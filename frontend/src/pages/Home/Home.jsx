@@ -138,7 +138,7 @@ export default function Home() {
 							{upcomingTutorias.length > 0 ? (
 								<div className="space-y-4">
 									{upcomingTutorias.map((tutoria) => (
-										<div key={tutoria.id} className="rounded-lg border p-4 transition-colors hover:bg-muted/50">
+										<div key={tutoria.id} className="rounded-lg border border-slate-300 p-4 transition-colors hover:bg-muted/50">
 											<div className="flex items-start justify-between gap-3">
 												<div className="space-y-1">
 													<div className="flex items-center gap-2">
