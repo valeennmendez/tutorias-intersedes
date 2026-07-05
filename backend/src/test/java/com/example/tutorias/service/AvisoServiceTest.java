@@ -121,6 +121,38 @@ class AvisoServiceTest {
         // Verificamos que jamás llegó a guardarse en la BD
         verify(avisoRepository, never()).save(any(Aviso.class));
     }
+    
+    @Test
+    void crearAviso_ProximoALaTutoria_GuardaAvisoExitosamente() {
+        // Arrange: Configuramos la tutoría para dentro de 1 hora (AHORA DEBE PASAR SIN EXCEPCIÓN)
+        LocalDateTime dentroDeUnaHora = LocalDateTime.now().plusHours(1);
+        tutoriaMock.setFecha(dentroDeUnaHora.toLocalDate());
+        tutoriaMock.setHoraInicio(dentroDeUnaHora.toLocalTime());
+
+        when(tutoriaRepository.findById(10L)).thenReturn(Optional.of(tutoriaMock));
+        when(tutorRepository.findByEmail(EMAIL_TUTOR)).thenReturn(Optional.of(tutorMock));
+
+        Aviso avisoGuardado = new Aviso();
+        avisoGuardado.setId(100L);
+        avisoGuardado.setTitulo(requestMock.getTitulo()); // Asumiendo que tenés requestMock configurado
+        avisoGuardado.setContenido(requestMock.getContenido());
+        avisoGuardado.setTutoria(tutoriaMock);
+        avisoGuardado.setTutor(tutorMock);
+        avisoGuardado.setCreatedAt(LocalDateTime.now());
+
+        when(avisoRepository.save(any(Aviso.class))).thenReturn(avisoGuardado);
+
+        // Act
+        AvisoResponseDTO resultado = avisoService.crearAviso(requestMock, EMAIL_TUTOR);
+
+        // Assert: Verificamos que se creó correctamente y no explotó
+        assertNotNull(resultado);
+        assertEquals(100L, resultado.getId());
+        assertEquals(requestMock.getTitulo(), resultado.getTitulo());
+        
+        // Verificamos que efectivamente llegó al save en la BD
+        verify(avisoRepository, times(1)).save(any(Aviso.class));
+    }
 
     // --- TESTS PARA OBTENER AVISOS POR TUTORÍA ---
 

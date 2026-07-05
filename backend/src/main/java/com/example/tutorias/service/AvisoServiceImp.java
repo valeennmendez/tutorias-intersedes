@@ -51,13 +51,13 @@ public class AvisoServiceImp implements AvisoService {
         if(!tutoria.getTutor().getId().equals(tutor.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para crear avisos en esta tutoria");
         }
-
+        // FIX: NO LA SACO PERO LA COMENTO
         //validamos la regla de 4hs de anticipo para crear un aviso
-        LocalDateTime inicioTutoria = LocalDateTime.of(tutoria.getFecha(), tutoria.getHoraInicio());
-        if (LocalDateTime.now().isAfter(inicioTutoria.minusHours(4))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Es demasiado tarde para enviar el aviso. Mínimo 4 horas de anticipación.");
-        }
+        //LocalDateTime inicioTutoria = LocalDateTime.of(tutoria.getFecha(), tutoria.getHoraInicio());
+        //if (LocalDateTime.now().isAfter(inicioTutoria.minusHours(4))) {
+        //    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+        //        "Es demasiado tarde para enviar el aviso. Mínimo 4 horas de anticipación.");
+        //}
 
         Aviso aviso = new Aviso();
         aviso.setTitulo(request.getTitulo());
