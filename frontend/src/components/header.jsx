@@ -79,7 +79,7 @@ export function DashboardHeader({ profile }) {
 	return (
 		<header className="sticky top-0 z-50 border-b border-slate-200 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container mx-auto flex h-16 items-center justify-between px-4">
-				<Link to="/dashboard" className="flex items-center gap-3">
+				<Link to={profile.role === "admin" ? null : "/dashboard"} className="flex items-center gap-3">
 					<img src={logo} alt="UNNOBA Logo" width={120} height={60} className="h-10 w-auto" />
 					<span className="hidden font-semibold lg:inline-block text-foreground">Tutorías</span>
 				</Link>
@@ -108,71 +108,79 @@ export function DashboardHeader({ profile }) {
 
 				<div className="flex items-center gap-2">
 					{/* Notification Bell */}
-					<DropdownMenu
-						onOpenChange={(open) => {
-							if (open) marcarLeidas(notificaciones.map((n) => n.id));
-						}}
-					>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="icon" className="relative">
-								{notificacionesLoading ? (
-									<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-								) : noLeidasCount > 0 ? (
-									<BellRing className="h-5 w-5 text-amber-500" />
-								) : (
-									<Bell className="h-5 w-5 text-muted-foreground" />
-								)}
-								{noLeidasCount > 0 && (
-									<span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-										{noLeidasCount > 9 ? "9+" : noLeidasCount}
-									</span>
-								)}
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-80">
-							<DropdownMenuLabel>
-								<div className="flex items-center justify-between">
-									<span className="text-sm font-medium">Notificaciones</span>
-									<BellRing className="h-4 w-4 text-muted-foreground" />
-								</div>
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							{notificaciones.length === 0 ? (
-								<div className="px-2 py-6 text-center text-sm text-muted-foreground">
-									<Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
-									No hay notificaciones
-								</div>
-							) : (
-								<>
-									<div className="max-h-72 overflow-y-auto">
-										{notifsOrdenadas.slice(0, 5).map((aviso) => {
-											const leido = notificacionesLeidas.includes(aviso.id);
-											return (
-												<DropdownMenuItem key={aviso.id} asChild className="cursor-pointer">
-													<Link to="/dashboard/bandeja-avisos" className="flex flex-col items-start gap-1 px-3 py-2 relative">
-														{!leido && <span className="absolute left-1 top-3 h-2 w-2 rounded-full bg-blue-500" />}
-														<span className={"text-sm font-medium leading-tight" + (!leido ? " ml-3" : "")}>{aviso.titulo}</span>
-														<span className={"text-xs text-muted-foreground line-clamp-1" + (!leido ? " ml-3" : "")}>
-															{aviso.nombreTutoria}
-														</span>
-														<span className={"text-[10px] text-muted-foreground/70" + (!leido ? " ml-3" : "")}>
-															{formatDistanceToNow(new Date(aviso.fechaCreacion), { addSuffix: true, locale: es })}
-														</span>
-													</Link>
-												</DropdownMenuItem>
-											);
-										})}
+
+					{profile.role === "admin" ? (
+						<></>
+					) : (
+						<DropdownMenu
+							onOpenChange={(open) => {
+								if (open) marcarLeidas(notificaciones.map((n) => n.id));
+							}}
+						>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" className="relative">
+									{notificacionesLoading ? (
+										<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+									) : noLeidasCount > 0 ? (
+										<BellRing className="h-5 w-5 text-amber-500" />
+									) : (
+										<Bell className="h-5 w-5 text-muted-foreground" />
+									)}
+									{noLeidasCount > 0 && (
+										<span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+											{noLeidasCount > 9 ? "9+" : noLeidasCount}
+										</span>
+									)}
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="w-80">
+								<DropdownMenuLabel>
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-medium">Notificaciones</span>
+										<BellRing className="h-4 w-4 text-muted-foreground" />
 									</div>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem asChild>
-										<Link to="/dashboard/bandeja-avisos" className="justify-center text-sm font-medium text-primary cursor-pointer">
-											Ver todos los avisos
-										</Link>
-									</DropdownMenuItem>
-								</>
-							)}
-						</DropdownMenuContent>
-					</DropdownMenu>
+								</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								{notificaciones.length === 0 ? (
+									<div className="px-2 py-6 text-center text-sm text-muted-foreground">
+										<Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
+										No hay notificaciones
+									</div>
+								) : (
+									<>
+										<div className="max-h-72 overflow-y-auto">
+											{notifsOrdenadas.slice(0, 5).map((aviso) => {
+												const leido = notificacionesLeidas.includes(aviso.id);
+												return (
+													<DropdownMenuItem key={aviso.id} asChild className="cursor-pointer">
+														<Link to="/dashboard/bandeja-avisos" className="flex flex-col items-start gap-1 px-3 py-2 relative">
+															{!leido && <span className="absolute left-1 top-3 h-2 w-2 rounded-full bg-blue-500" />}
+															<span className={"text-sm font-medium leading-tight" + (!leido ? " ml-3" : "")}>{aviso.titulo}</span>
+															<span className={"text-xs text-muted-foreground line-clamp-1" + (!leido ? " ml-3" : "")}>
+																{aviso.nombreTutoria}
+															</span>
+															<span className={"text-[10px] text-muted-foreground/70" + (!leido ? " ml-3" : "")}>
+																{formatDistanceToNow(new Date(aviso.fechaCreacion), { addSuffix: true, locale: es })}
+															</span>
+														</Link>
+													</DropdownMenuItem>
+												);
+											})}
+										</div>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem asChild>
+											<Link
+												to="/dashboard/bandeja-avisos"
+												className="justify-center text-sm font-medium text-primary cursor-pointer"
+											>
+												Ver todos los avisos
+											</Link>
+										</DropdownMenuItem>
+									</>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					)}
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -197,13 +205,20 @@ export function DashboardHeader({ profile }) {
 									</span>
 								</div>
 							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem asChild>
-								<Link to="/dashboard/perfil" className="cursor-pointer">
-									<User className="mr-2 h-4 w-4" />
-									Mi Perfil
-								</Link>
-							</DropdownMenuItem>
+							{profile.role === "admin" ? (
+								<></>
+							) : (
+								<>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem asChild>
+										<Link to="/dashboard/perfil" className="cursor-pointer">
+											<User className="mr-2 h-4 w-4" />
+											Mi Perfil
+										</Link>
+									</DropdownMenuItem>
+								</>
+							)}
+
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
 								<LogOut className="mr-2 h-4 w-4" />
