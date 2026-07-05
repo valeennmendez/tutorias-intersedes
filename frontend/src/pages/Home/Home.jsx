@@ -5,7 +5,7 @@ import { axiosInstance } from "@/utils/axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Calendar, Clock, Users, ArrowRight, Bell, TrendingUp } from "lucide-react";
+import { BookOpen, Calendar, Clock, Users, ArrowRight, Bell, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -14,6 +14,7 @@ export default function Home() {
 	const [upcomingTutorias, setUpcomingTutorias] = useState([]);
 	const [avisos, setAvisos] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [expandedTutoriaId, setExpandedTutoriaId] = useState(null);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -38,6 +39,10 @@ export default function Home() {
 		};
 		fetchData();
 	}, [user]);
+
+	const toggleTutoriaDetails = (tutoriaId) => {
+		setExpandedTutoriaId((currentId) => (currentId === tutoriaId ? null : tutoriaId));
+	};
 
 	if (loading) {
 		return (
@@ -150,36 +155,68 @@ export default function Home() {
 								{upcomingTutorias.map((tutoria) => (
 									<div
 										key={tutoria.id}
-										className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
+										className="rounded-lg border p-4 transition-colors hover:bg-muted/50"
 									>
-										<div className="space-y-1">
-											<div className="flex items-center gap-2">
-												<h4 className="font-medium">{tutoria.nombre || tutoria.titulo}</h4>
-												<Badge variant={tutoria.modalidad === "VIRTUAL" ? "secondary" : "outline"}>
-													{tutoria.modalidad}
-												</Badge>
-											</div>
-											<p className="text-sm text-muted-foreground">
-												{tutoria.materia?.nombre || "—"}
-											</p>
-											{tutoria.fecha && (
-												<div className="flex items-center gap-4 text-xs text-muted-foreground">
-													<span className="flex items-center gap-1">
-														<Calendar className="h-3 w-3" />
-														{format(new Date(tutoria.fecha), "d 'de' MMMM", { locale: es })}
-													</span>
-													{tutoria.hora_inicio && (
-														<span className="flex items-center gap-1">
-															<Clock className="h-3 w-3" />
-															{tutoria.hora_inicio?.slice(0, 5)} - {tutoria.hora_fin?.slice(0, 5)}
-														</span>
-													)}
+										<div className="flex items-start justify-between gap-3">
+											<div className="space-y-1">
+												<div className="flex items-center gap-2">
+													<h4 className="font-medium">{tutoria.nombre || tutoria.titulo}</h4>
+													<Badge variant={tutoria.modalidad === "VIRTUAL" ? "secondary" : "outline"}>
+														{tutoria.modalidad}
+													</Badge>
 												</div>
-											)}
+												<p className="text-sm text-muted-foreground">
+													{tutoria.materia?.nombre || "—"}
+												</p>
+												{tutoria.fecha && (
+													<div className="flex items-center gap-4 text-xs text-muted-foreground">
+														<span className="flex items-center gap-1">
+															<Calendar className="h-3 w-3" />
+															{format(new Date(tutoria.fecha), "d 'de' MMMM", { locale: es })}
+														</span>
+														{tutoria.hora_inicio && (
+															<span className="flex items-center gap-1">
+																<Clock className="h-3 w-3" />
+																{tutoria.hora_inicio?.slice(0, 5)} - {tutoria.hora_fin?.slice(0, 5)}
+															</span>
+														)}
+													</div>
+												)}
+											</div>
+											<Button size="sm" variant="outline" onClick={() => toggleTutoriaDetails(tutoria.id)}>
+												{expandedTutoriaId === tutoria.id ? (
+													<>
+														<ChevronUp className="mr-2 h-4 w-4" />
+														Ocultar
+													</>
+												) : (
+													<>
+														<ChevronDown className="mr-2 h-4 w-4" />
+														Ver más
+													</>
+												)}
+											</Button>
 										</div>
-										<Button size="sm" asChild>
-											<Link to={`/dashboard/tutorias/${tutoria.id}`}>Ver más</Link>
-										</Button>
+
+										{expandedTutoriaId === tutoria.id && (
+											<div className="mt-3 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+												<p>{tutoria.descripcion || "Podés ver información adicional de esta tutoría al abrir la sección de tutorías completas."}</p>
+												<div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+													{tutoria.sede && <span>Sede: {tutoria.sede}</span>}
+													{tutoria.tutorNombre && <span>Tutor: {tutoria.tutorNombre}</span>}
+												</div>
+												{tutoria.linkDrive && (
+													<a
+														href={tutoria.linkDrive}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="inline-flex text-sky-600 hover:underline"
+													>
+														Abrir contenido de Drive
+													</a>
+												)}
+											</div>
+										)}
 									</div>
 								))}
 							</div>
