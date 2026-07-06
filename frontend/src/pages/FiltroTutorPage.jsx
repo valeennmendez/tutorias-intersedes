@@ -1,31 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import {
-	CalendarDays,
-	ChevronDown,
-	ChevronUp,
-	ExternalLink,
-	Loader2,
-	Search,
-	ArrowLeft,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, ExternalLink, Loader2, Search, ArrowLeft } from "lucide-react";
 
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,11 +61,7 @@ export default function FiltroTutorPage() {
 			try {
 				setCargandoInscripciones(true);
 				const res = await axiosInstance.get("/inscripciones/mis-inscripciones");
-				const activas = new Set(
-					(res.data || [])
-						.filter((i) => i.status === "ACTIVA")
-						.map((i) => i.tutoriaId)
-				);
+				const activas = new Set((res.data || []).filter((i) => i.status === "ACTIVA").map((i) => i.tutoriaId));
 				setInscripcionesActivas(activas);
 			} catch (error) {
 				console.error("Error al cargar inscripciones:", error);
@@ -108,19 +83,13 @@ export default function FiltroTutorPage() {
 		if (!termino) return base;
 
 		return base.filter((tutoria) => {
-			const textoBuscable = [
-				tutoria.tutorNombre,
-				tutoria.materiaNombre,
-				tutoria.sede,
-				tutoria.modalidad,
-				tutoria.nombre,
-			]
+			const textoBuscable = [tutoria.tutorNombre, tutoria.materiaNombre, tutoria.sede, tutoria.modalidad, tutoria.nombre]
 				.join(" ")
 				.toLowerCase();
 
 			return textoBuscable.includes(termino);
 		});
-	}, [busqueda, tutorias, mostrarSoloMias, user?.id]);
+	}, [busqueda, tutorias, mostrarSoloMias, user?.id, user?.role]);
 
 	const toggleDetalles = (id) => {
 		setTutorExpandido((actual) => (actual === id ? null : id));
@@ -136,11 +105,7 @@ export default function FiltroTutorPage() {
 		} catch (error) {
 			const data = error.response?.data;
 			console.error("Error al inscribirse:", error.response || error);
-			const msg =
-				data?.detalle ||
-				data?.error ||
-				error.message ||
-				"Error al inscribirse";
+			const msg = data?.detalle || data?.error || error.message || "Error al inscribirse";
 			toast.error(msg);
 		} finally {
 			setInscribiendo(false);
@@ -159,11 +124,7 @@ export default function FiltroTutorPage() {
 			});
 		} catch (error) {
 			const data = error.response?.data;
-			const msg =
-				data?.detalle ||
-				data?.error ||
-				error.message ||
-				"Error al cancelar la inscripción";
+			const msg = data?.detalle || data?.error || error.message || "Error al cancelar la inscripción";
 			toast.error(msg);
 		} finally {
 			setCancelando(null);
@@ -193,7 +154,9 @@ export default function FiltroTutorPage() {
 
 					<Card className="border-slate-200 shadow-md">
 						<CardHeader className="pb-4">
-							<CardTitle className="text-xl text-slate-900">{mostrarSoloMias ? "Mis tutorías" : "Buscar tutorías disponibles"}</CardTitle>
+							<CardTitle className="text-xl text-slate-900">
+								{mostrarSoloMias ? "Mis tutorías" : "Buscar tutorías disponibles"}
+							</CardTitle>
 							<CardDescription>
 								{mostrarSoloMias
 									? "Acá ves solamente todas las tutorías que vos creaste."
@@ -221,7 +184,8 @@ export default function FiltroTutorPage() {
 								<>
 									<div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
 										<span>
-											{tutoriasFiltradas.length} tutoría{tutoriasFiltradas.length === 1 ? "" : "s"} encontrada{tutoriasFiltradas.length === 1 ? "" : "s"}
+											{tutoriasFiltradas.length} tutoría{tutoriasFiltradas.length === 1 ? "" : "s"} encontrada
+											{tutoriasFiltradas.length === 1 ? "" : "s"}
 										</span>
 										<span className="hidden sm:inline">Hacé click en "Ver detalles" para ver más información.</span>
 									</div>
@@ -234,19 +198,19 @@ export default function FiltroTutorPage() {
 										) : (
 											tutoriasFiltradas.map((tutoria) => {
 												const abierto = tutorExpandido === tutoria.id;
+												const esTutoriaPropia = Number(tutoria?.tutorId ?? tutoria?.tutor?.id ?? 0) === Number(user?.id ?? 0);
+												const puedeInscribirse = !esTutoriaPropia && (user?.role === "alumno" || user?.role === "tutor");
 												const diaSemana = tutoria.fecha ? DIAS_SEMANA[new Date(tutoria.fecha).getDay()] : "";
-												const horario = tutoria.horaInicio && tutoria.horaFin
-													? `${tutoria.horaInicio.slice(0, 5)} - ${tutoria.horaFin.slice(0, 5)}`
-													: "";
-
+												const horario =
+													tutoria.horaInicio && tutoria.horaFin
+														? `${tutoria.horaInicio.slice(0, 5)} - ${tutoria.horaFin.slice(0, 5)}`
+														: "";
 												return (
 													<Card key={tutoria.id} className="border-slate-200 shadow-sm">
 														<CardHeader className="pb-3">
 															<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 																<div>
-																	<CardTitle className="text-xl text-slate-900">
-																		{tutoria.materiaNombre}
-																	</CardTitle>
+																	<CardTitle className="text-xl text-slate-900">{tutoria.materiaNombre}</CardTitle>
 																	<p className="text-sm text-slate-500">{tutoria.tutorNombre}</p>
 																</div>
 
@@ -293,14 +257,16 @@ export default function FiltroTutorPage() {
 																		</>
 																	)}
 																</Button>
-																{(user?.role === "alumno" || user?.role === "tutor") ? (
-																	inscripcionesActivas.has(tutoria.id) ? (
+																{puedeInscribirse || esTutoriaPropia ? (
+																	esTutoriaPropia ? (
+																		<Badge className="bg-slate-600">Tu tutoría</Badge>
+																	) : inscripcionesActivas.has(tutoria.id) ? (
 																		<>
 																			<Badge className="bg-green-600">Ya inscripto</Badge>
 																			<Button
 																				type="button"
 																				variant="destructive"
-																				className="border border-red-400"
+																				className="border border-red-400 cursor-pointer"
 																				onClick={() => handleCancelarInscripcion(tutoria.id)}
 																				disabled={cancelando === tutoria.id}
 																			>
@@ -315,12 +281,14 @@ export default function FiltroTutorPage() {
 																		<Button
 																			type="button"
 																			variant="outline"
-																			className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
-																			onClick={() => setDialogoAbierto(tutoria.id)}
-																			disabled={cargandoInscripciones}
+																			className="border-emerald-600 cursor-pointer text-emerald-700 hover:bg-emerald-50"
+																			onClick={() => !esTutoriaPropia && setDialogoAbierto(tutoria.id)}
+																			disabled={cargandoInscripciones || esTutoriaPropia}
 																		>
 																			{cargandoInscripciones ? (
-																				<Loader2 className="h-4 w-4 animate-spin" />
+																				<Loader2 className="h-4 w-4 animate-spin " />
+																			) : esTutoriaPropia ? (
+																				"Tu tutoría"
 																			) : (
 																				"Inscribirse"
 																			)}
@@ -378,14 +346,17 @@ export default function FiltroTutorPage() {
 				</div>
 			</div>
 
-			<Dialog open={dialogoAbierto !== null} onOpenChange={(open) => { if (!open) setDialogoAbierto(null); }}>
+			<Dialog
+				open={dialogoAbierto !== null}
+				onOpenChange={(open) => {
+					if (!open) setDialogoAbierto(null);
+				}}
+			>
 				{tutoriaDialogo ? (
 					<DialogContent>
 						<DialogHeader>
 							<DialogTitle>Confirmar inscripción</DialogTitle>
-							<DialogDescription>
-								¿Estás seguro que querés inscribirte a esta tutoría?
-							</DialogDescription>
+							<DialogDescription>¿Estás seguro que querés inscribirte a esta tutoría?</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-3 py-2">
 							<div className="grid grid-cols-2 gap-2 text-sm">
@@ -426,9 +397,7 @@ export default function FiltroTutorPage() {
 								onClick={() => handleInscribirse(tutoriaDialogo.id)}
 								disabled={inscribiendo}
 							>
-								{inscribiendo ? (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								) : null}
+								{inscribiendo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
 								Confirmar inscripción
 							</Button>
 						</DialogFooter>
