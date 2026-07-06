@@ -17,4 +17,5 @@ public class InscripcionResponseDTO {
     private String emailAlumno;
     private String status;
     private LocalDateTime fechaInscripcion;
+    private boolean tieneFeedback;
 }

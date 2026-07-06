@@ -123,6 +123,23 @@ class InscripcionServiceTest {
     }
 
     @Test
+    void obtenerMisInscripciones_MarcaCuandoLaInscripcionYaTieneFeedback() {
+        Inscripcion inscripcion = new Inscripcion();
+        inscripcion.setId(1L);
+        inscripcion.setTutoria(tutoriaMock);
+        inscripcion.setAlumno(alumnoMock);
+        inscripcion.setStatus(InscripcionStatus.ACTIVA);
+        inscripcion.setFeedback(new Feedback());
+
+        when(inscripcionRepository.findByAlumnoEmail(EMAIL_ALUMNO)).thenReturn(List.of(inscripcion));
+
+        List<InscripcionResponseDTO> response = inscripcionService.obtenerMisInscripciones(EMAIL_ALUMNO);
+
+        assertEquals(1, response.size());
+        assertTrue(response.get(0).isTieneFeedback());
+    }
+
+    @Test
     void obtenerHistorialTutoriasAlumno_DevuelveSoloTutoriasFinalizadasActivas() {
         Inscripcion inscripcionFinalizada = inscripcionConTutoria(
                 1L,

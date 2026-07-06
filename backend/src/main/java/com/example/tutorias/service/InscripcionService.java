@@ -133,6 +133,7 @@ public class InscripcionService {
         dto.setNombreTutor(inscripcion.getTutoria().getTutor().getNombre() + " " + inscripcion.getTutoria().getTutor().getApellido());
         dto.setStatus(inscripcion.getStatus().name());
         dto.setFechaInscripcion(inscripcion.getCreatedAt());
+        dto.setTieneFeedback(inscripcion.getFeedback() != null);
         dto.setNombreAlumno(inscripcion.getAlumno().getNombre());
         dto.setNombreAlumno(inscripcion.getAlumno().getNombre() + " " + inscripcion.getAlumno().getApellido());
         dto.setEmailAlumno(inscripcion.getAlumno().getEmail());
